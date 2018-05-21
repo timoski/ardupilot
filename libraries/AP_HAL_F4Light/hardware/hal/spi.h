@@ -79,6 +79,9 @@ typedef enum spi_baud_rate {
 } spi_baud_rate;
 
 
+#define SPI_Mode_Master                 ((uint16_t)0x0104)
+#define SPI_Mode_Slave                  ((uint16_t)0x0000)
+
 #define SPI_BIT_RXNE               ((uint16_t)0x0001)
 #define SPI_BIT_TXE                ((uint16_t)0x0002)
 #define SPI_BIT_CRCERR             ((uint16_t)0x0010)
@@ -113,7 +116,35 @@ typedef enum spi_interrupt {
 #define SPI_INTERRUPTS_ALL              (SPI_TXE_INTERRUPT  |           \
                                          SPI_RXNE_INTERRUPT |           \
                                          SPI_ERR_INTERRUPT)
-                                         
+
+
+
+#define SPI_CPHA_1Edge                  ((uint16_t)0x0000)
+#define SPI_CPHA_2Edge                  ((uint16_t)0x0001)
+
+#define SPI_CPOL_Low                    ((uint16_t)0x0000)
+#define SPI_CPOL_High                   ((uint16_t)0x0002)
+
+#define SPI_FirstBit_MSB                ((uint16_t)0x0000)
+#define SPI_FirstBit_LSB                ((uint16_t)0x0080)                                         
+
+
+#define SPI_CR1_CLEAR_MASK            ((uint16_t)0x3040)
+#define I2SCFGR_CLEAR_MASK        ((uint16_t)0xF040)
+
+
+#define SPI_Direction_2Lines_FullDuplex ((uint16_t)0x0000)
+#define SPI_Direction_2Lines_RxOnly     ((uint16_t)0x0400)
+#define SPI_Direction_1Line_Rx          ((uint16_t)0x8000)
+#define SPI_Direction_1Line_Tx          ((uint16_t)0xC000)
+
+
+#define SPI_DataSize_16b                ((uint16_t)0x0800)
+#define SPI_DataSize_8b                 ((uint16_t)0x0000)
+
+#define SPI_NSS_Soft                    ((uint16_t)0x0200)
+#define SPI_NSS_Hard                    ((uint16_t)0x0000)
+
 
 #ifdef __cplusplus
   extern "C" {

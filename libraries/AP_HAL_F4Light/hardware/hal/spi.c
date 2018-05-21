@@ -130,14 +130,11 @@ void spi_gpio_slave_cfg(const spi_dev *dev,
  * SPI auxiliary routines
  */
 void spi_reconfigure(const spi_dev *dev, uint8_t ismaster, uint16_t baudPrescaler, uint16_t bitorder, uint8_t mode) {
-    SPI_InitTypeDef  SPI_InitStructure;	
-
     memset(dev->state, 0, sizeof(spi_state));    
     
     spi_disable_irq(dev, SPI_INTERRUPTS_ALL);  
     
     spi_init(dev);
-
     spi_peripheral_disable(dev);
 
     /* Enable the SPI clock */
@@ -149,51 +146,70 @@ void spi_reconfigure(const spi_dev *dev, uint8_t ismaster, uint16_t baudPrescale
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
                 	
     /* SPI configuration */
-    SPI_StructInit(&SPI_InitStructure);
-    SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-    SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
 	
+    uint16_t SPI_CPOL;
+    uint16_t SPI_CPHA;
+    
     switch(mode) {
     case SPI_MODE_0:
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+	SPI_CPOL = SPI_CPOL_Low;
+	SPI_CPHA = SPI_CPHA_1Edge;
 	break;
     case SPI_MODE_1:
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;
+	SPI_CPOL = SPI_CPOL_Low;
+	SPI_CPHA = SPI_CPHA_2Edge;
 	break;
     case SPI_MODE_2:
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
+	SPI_CPOL = SPI_CPOL_High;
+	SPI_CPHA = SPI_CPHA_1Edge;
 	break;
     case SPI_MODE_3:
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;
+	SPI_CPOL = SPI_CPOL_High;
+	SPI_CPHA = SPI_CPHA_2Edge;
 	break;
     default:
 	break;
     }
 
 
-    SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-    SPI_InitStructure.SPI_BaudRatePrescaler = baudPrescaler;
-    if (bitorder == LSBFIRST)
-    	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_LSB;
-    else
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-	
-    SPI_InitStructure.SPI_CRCPolynomial = 7;
-    if (ismaster)
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-    else
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Slave;
-	
-    SPI_Init(dev->SPIx, &SPI_InitStructure);
+    uint16_t SPI_FirstBit;
+    if (bitorder == LSBFIRST)  	SPI_FirstBit = SPI_FirstBit_LSB;
+    else                        SPI_FirstBit = SPI_FirstBit_MSB;
+    
+    uint16_t SPI_Mode;
+    if (ismaster) SPI_Mode = SPI_Mode_Master;
+    else          SPI_Mode = SPI_Mode_Slave;
 
-    SPI_Cmd(dev->SPIx, ENABLE);
+/*---------------------------- SPIx CR1 Configuration ------------------------*/
+    /* Get the SPIx CR1 value */
+    uint16_t tmpreg = dev->SPIx->CR1 &= SPI_CR1_CLEAR_MASK;  // Clear BIDIMode, BIDIOE, RxONLY, SSM, SSI, LSBFirst, BR, MSTR, CPOL and CPHA bits
+
+    /* Configure SPIx: direction, NSS management, first transmitted bit, BaudRate prescaler
+       master/salve mode, CPOL and CPHA */
+    /* Set BIDImode, BIDIOE and RxONLY bits according to SPI_Direction value */
+    /* Set SSM, SSI and MSTR bits according to SPI_Mode and SPI_NSS values */
+    /* Set LSBFirst bit according to SPI_FirstBit value */
+    /* Set BR bits according to SPI_BaudRatePrescaler value */
+    /* Set CPOL bit according to SPI_CPOL value */
+    /* Set CPHA bit according to SPI_CPHA value */
+    tmpreg |= (uint16_t)((uint32_t)SPI_Direction_2Lines_FullDuplex | SPI_Mode |
+                    SPI_DataSize_8b | SPI_CPOL |
+                    SPI_CPHA | SPI_NSS_Soft |
+                    baudPrescaler | SPI_FirstBit);
+    /* Write to SPIx CR1 */
+    dev->SPIx->CR1 = tmpreg;
+
+    /* Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) */
+    dev->SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
+
+    /* Write to SPIx CRCPOLY */
+    dev->SPIx->CRCPR = 7; // SPI_CRCPolynomial;
+
+    /* Enable the selected SPI peripheral */
+    spi_peripheral_enable(dev);
         
     uint32_t dly=1000;
-    while (SPI_I2S_GetFlagStatus(dev->SPIx, SPI_BIT_TXE) == RESET) {
+    while ( (dev->SPIx->SR & SPI_BIT_TXE) == 0) {
         dly--;
         if(dly==0) break;
     }
@@ -206,11 +222,11 @@ void spi_set_speed(const spi_dev *dev, uint16_t baudPrescaler) {
 
 #define BR_CLEAR_MASK 0xFFC7
 
-    SPI_Cmd(dev->SPIx, DISABLE);
+    spi_peripheral_disable(dev);
 
     dev->SPIx->CR1 = (dev->SPIx->CR1 & BR_CLEAR_MASK) | baudPrescaler;
 
-    SPI_Cmd(dev->SPIx, ENABLE);
+    spi_peripheral_enable(dev);
 }
 
 
