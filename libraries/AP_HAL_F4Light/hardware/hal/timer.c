@@ -41,6 +41,7 @@ based on:
 #include "dma.h"
 #include <string.h>
 #include "nvic.h"
+#include "gpio_hal.h"
 
 /* Just like the corresponding DIER bits:
  * [0] = Update handler;
@@ -356,7 +357,6 @@ void timer_disable(const timer_dev *dev) {
 // returns real timers freq
 uint32_t configTimeBase(const timer_dev *dev, uint16_t period, uint16_t khz)
 {
-    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
     TIM_TypeDef *tim = dev->regs;
 
     timer_init(dev); // turn it on
@@ -369,9 +369,8 @@ uint32_t configTimeBase(const timer_dev *dev, uint16_t period, uint16_t khz)
     dev->regs->DIER = 0;
     dev->regs->EGR = TIMER_EGR_UG;
 
-    TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
 
-    TIM_TimeBaseStructure.TIM_Period = (period - 1) & get_timer_mask(dev); // AKA TIMx_ARR
+    uint32_t TIM_Period = (period - 1) & get_timer_mask(dev); // AKA TIMx_ARR
     uint32_t freq = (uint32_t)khz * 1000;
     uint16_t prescaler;
     uint32_t tf; // timer's frequency
@@ -384,18 +383,46 @@ uint32_t configTimeBase(const timer_dev *dev, uint16_t period, uint16_t khz)
 
     prescaler = ((tf + freq/4) / freq) - 1; // ==41 for 2MHz
     
-    TIM_TimeBaseStructure.TIM_Prescaler = prescaler;
     freq = tf / prescaler; // real timer's frequency
-    
     dev->state->freq = freq; // store
 
-    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit(tim, &TIM_TimeBaseStructure);
+    uint16_t tmpcr1 = tim->CR1;
+
+    if((tim == TIM1) || (tim == TIM8)||
+       (tim == TIM2) || (tim == TIM3)||
+       (tim == TIM4) || (tim == TIM5)) {
+        /* Select the Counter Mode */
+        tmpcr1 &= (uint16_t)(~(TIM_CR1_DIR | TIM_CR1_CMS));
+        tmpcr1 |= (uint32_t)TIM_CounterMode_Up;
+    }
+  
+    if((tim != TIM6) && (tim != TIM7)) {
+        /* Set the clock division */
+        tmpcr1 &=  (uint16_t)(~TIM_CR1_CKD);
+        tmpcr1 |= (uint32_t)0; // TIM_ClockDivision;
+    }
+  
+    tim->CR1 = tmpcr1;
+
+    /* Set the Autoreload value */
+    tim->ARR = TIM_Period ;
+
+    /* Set the Prescaler value */
+    tim->PSC = prescaler;
+
+    if ((tim == TIM1) || (tim == TIM8)) {
+        /* Set the Repetition Counter value */
+        tim->RCR = 0;
+    }
+  
+    /* Generate an update event to reload the Prescaler 
+       and the repetition counter(only for TIM1 and TIM8) value immediatly */
+    tim->EGR = TIM_PSCReloadMode_Immediate;
+    
 
     switch (dev->type) {
     case TIMER_ADVANCED:
-        dev->regs->BDTR = TIMER_BDTR_MOE | TIMER_BDTR_LOCK_OFF; //  break and dead-time register, enable output
+        tim->BDTR = TIMER_BDTR_MOE | TIMER_BDTR_LOCK_OFF; //  break and dead-time register, enable output
         // fall-through
     case TIMER_GENERAL:
     case TIMER_BASIC:
@@ -440,10 +467,8 @@ static void output_compare_mode(const timer_dev *dev, timer_Channel channel) {
  * @param mode New timer mode for channel
  */
 void timer_set_mode(const timer_dev *dev, timer_Channel channel, timer_mode mode) {
-    assert_param(channel > 0 && channel <= 4);
 
     /* TODO decide about the basic timers */
-    assert_param(dev->type != TIMER_BASIC);
     if (!dev || dev->type == TIMER_BASIC)
         return;
 
