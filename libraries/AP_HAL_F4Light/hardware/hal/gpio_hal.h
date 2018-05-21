@@ -20,6 +20,42 @@
 
 */
 
+
+#define GPIO_Pin_0                 ((uint16_t)0x0001)  /* Pin 0 selected */
+#define GPIO_Pin_1                 ((uint16_t)0x0002)  /* Pin 1 selected */
+#define GPIO_Pin_2                 ((uint16_t)0x0004)  /* Pin 2 selected */
+#define GPIO_Pin_3                 ((uint16_t)0x0008)  /* Pin 3 selected */
+#define GPIO_Pin_4                 ((uint16_t)0x0010)  /* Pin 4 selected */
+#define GPIO_Pin_5                 ((uint16_t)0x0020)  /* Pin 5 selected */
+#define GPIO_Pin_6                 ((uint16_t)0x0040)  /* Pin 6 selected */
+#define GPIO_Pin_7                 ((uint16_t)0x0080)  /* Pin 7 selected */
+#define GPIO_Pin_8                 ((uint16_t)0x0100)  /* Pin 8 selected */
+#define GPIO_Pin_9                 ((uint16_t)0x0200)  /* Pin 9 selected */
+#define GPIO_Pin_10                ((uint16_t)0x0400)  /* Pin 10 selected */
+#define GPIO_Pin_11                ((uint16_t)0x0800)  /* Pin 11 selected */
+#define GPIO_Pin_12                ((uint16_t)0x1000)  /* Pin 12 selected */
+#define GPIO_Pin_13                ((uint16_t)0x2000)  /* Pin 13 selected */
+#define GPIO_Pin_14                ((uint16_t)0x4000)  /* Pin 14 selected */
+#define GPIO_Pin_15                ((uint16_t)0x8000)  /* Pin 15 selected */
+#define GPIO_Pin_All               ((uint16_t)0xFFFF)  /* All pins selected */
+
+#define GPIO_PinSource0            ((uint8_t)0x00)
+#define GPIO_PinSource1            ((uint8_t)0x01)
+#define GPIO_PinSource2            ((uint8_t)0x02)
+#define GPIO_PinSource3            ((uint8_t)0x03)
+#define GPIO_PinSource4            ((uint8_t)0x04)
+#define GPIO_PinSource5            ((uint8_t)0x05)
+#define GPIO_PinSource6            ((uint8_t)0x06)
+#define GPIO_PinSource7            ((uint8_t)0x07)
+#define GPIO_PinSource8            ((uint8_t)0x08)
+#define GPIO_PinSource9            ((uint8_t)0x09)
+#define GPIO_PinSource10           ((uint8_t)0x0A)
+#define GPIO_PinSource11           ((uint8_t)0x0B)
+#define GPIO_PinSource12           ((uint8_t)0x0C)
+#define GPIO_PinSource13           ((uint8_t)0x0D)
+#define GPIO_PinSource14           ((uint8_t)0x0E)
+#define GPIO_PinSource15           ((uint8_t)0x0F)
+
 // AF 0 (default) selection  
 #define GPIO_AF_RTC_50Hz      ((uint8_t)0x00)  // RTC_50Hz 
 #define GPIO_AF_MCO           ((uint8_t)0x00)  // MCO (MCO1 and MCO2) 
@@ -93,6 +129,10 @@
 //     AF 13 selection  
 #define GPIO_AF_DCMI          ((uint8_t)0x0D)  // DCMI
 
+
+#define GPIO_AF_OTG1_FS         GPIO_AF_OTG_FS
+#define GPIO_AF_OTG2_HS         GPIO_AF_OTG_HS
+#define GPIO_AF_OTG2_FS         GPIO_AF_OTG_HS_FS
  
 typedef enum gpio_pin_mode {
     GPIO_INPUT_FLOATING, 	/**< Input floating. */
@@ -121,7 +161,26 @@ typedef enum
   GPIO_speed_100MHz = 0x03  /*!< High speed on 30 pF (80 MHz Output max speed on 15 pF) */
 } GPIOSpeed_t;
 
+typedef enum
+{
+  GPIO_Mode_IN   = 0x00, /*!< GPIO Input Mode */
+  GPIO_Mode_OUT  = 0x01, /*!< GPIO Output Mode */
+  GPIO_Mode_AF   = 0x02, /*!< GPIO Alternate function Mode */
+  GPIO_Mode_AN   = 0x03  /*!< GPIO Analog Mode */
+}GPIOMode_t;
 
+typedef enum
+{
+  GPIO_OType_PP = 0x00,
+  GPIO_OType_OD = 0x01
+}GPIOOType_t;
+
+typedef enum
+{
+  GPIO_PuPd_NOPULL = 0x00,
+  GPIO_PuPd_UP     = 0x01,
+  GPIO_PuPd_DOWN   = 0x02
+}GPIOPuPd_t;
 
 /** GPIO device type */
 typedef struct gpio_dev {
@@ -129,6 +188,17 @@ typedef struct gpio_dev {
     uint32_t clk; 	      /**< RCC clock information */
     afio_exti_port exti_port; /**< AFIO external interrupt port value */
 } gpio_dev;
+
+
+//  GPIO Init structure definition  
+typedef struct{
+  uint32_t GPIO_Pin;              // Specifies the GPIO pins to be configured.           This parameter can be any value of @ref GPIO_pins_define 
+  GPIOMode_t GPIO_Mode;     // Specifies the operating mode for the selected pins. This parameter can be a value of @ref GPIOMode_t 
+  GPIOSpeed_t GPIO_Speed;   // Specifies the speed for the selected pins.          This parameter can be a value of @ref GPIOSpeed_t 
+  GPIOOType_t GPIO_OType;   // Specifies the operating output type for the selected pins.  This parameter can be a value of @ref GPIOOType_t 
+  GPIOPuPd_t GPIO_PuPd;     // Specifies the operating Pull-up/Pull down for the selected pins.  This parameter can be a value of @ref GPIOPuPd_t */
+}GPIO_Init_t;
+
 
 #ifdef __cplusplus
   extern "C" {
@@ -150,11 +220,6 @@ extern const gpio_dev gpiog;
 extern const gpio_dev* const _GPIOG;
 
 /**
- * Initialize a GPIO device. 
- */
-extern void gpio_init(const gpio_dev* const dev);
-
-/**
  * Initialize and reset all available GPIO devices. 
  */
 extern void gpio_init_all(void);
@@ -164,6 +229,7 @@ extern void gpio_init_all(void);
  */
 extern void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode mode);
 
+extern void gpio_init(GPIO_TypeDef* GPIOx, GPIO_Init_t* conf);
 
 /**
  * Set the alternate function mode of a GPIO pin.

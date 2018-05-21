@@ -85,7 +85,7 @@ uint32_t i2c_bit_time=4;
  * @retval None
  */
 void i2c_lowLevel_deinit(const i2c_dev *dev){
-    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_Init_t GPIO_InitStructure;
 
     /* I2C Peripheral Disable */
     I2C_Cmd(dev->I2Cx, DISABLE);
@@ -96,14 +96,14 @@ void i2c_lowLevel_deinit(const i2c_dev *dev){
     /*!< GPIO configuration */
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz; // low speed to prevent glitches
+    GPIO_InitStructure.GPIO_Speed = GPIO_speed_2MHz; // low speed to prevent glitches
 
     {
         const stm32_pin_info *p = &PIN_MAP[dev->scl_pin];
 
         /*!< Configure I2C pins: SCL */
         GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
-        GPIO_Init(p->gpio_device->GPIOx, &GPIO_InitStructure);
+        gpio_init(p->gpio_device->GPIOx, &GPIO_InitStructure);
     }
 
     {
@@ -111,7 +111,7 @@ void i2c_lowLevel_deinit(const i2c_dev *dev){
 
         /*!< Configure I2C pins: SDA */
         GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
-        GPIO_Init(p->gpio_device->GPIOx, &GPIO_InitStructure);
+        gpio_init(p->gpio_device->GPIOx, &GPIO_InitStructure);
     }
 }
 
@@ -121,7 +121,7 @@ void i2c_lowLevel_deinit(const i2c_dev *dev){
 static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
     memset(dev->state,0,sizeof(i2c_state));
 
-    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_Init_t GPIO_InitStructure;
 
     /* Enable the i2c */
     RCC_APB1PeriphClockCmd(dev->clk, ENABLE);
@@ -135,7 +135,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
 // common configuration
     /* common GPIO configuration */
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_25MHz; // GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_speed_25MHz; // GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
 
@@ -146,7 +146,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         RCC_AHB1PeriphClockCmd(p->gpio_device->clk, ENABLE);
 
         GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
-        GPIO_Init(p->gpio_device->GPIOx, &GPIO_InitStructure);
+        gpio_init(p->gpio_device->GPIOx, &GPIO_InitStructure);
         /* Connect GPIO pins to peripheral, SCL must be first! */
         gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);
     }
@@ -158,7 +158,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         RCC_AHB1PeriphClockCmd(p->gpio_device->clk, ENABLE);
 
         GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
-        GPIO_Init(p->gpio_device->GPIOx, &GPIO_InitStructure);
+        gpio_init(p->gpio_device->GPIOx, &GPIO_InitStructure);
         gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);
     }
 }

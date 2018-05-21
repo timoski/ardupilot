@@ -75,18 +75,6 @@ const gpio_dev* const _GPIOG = &gpiog;
 static const gpio_dev* _gpios[] =  { &gpioa, &gpiob, &gpioc, &gpiod, &gpioe, &gpiof, &gpiog };
 
 
-#if 0 // unused
-
-void gpio_init(const gpio_dev* const dev) 
-{
-	/* Check the parameters */
-	assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-	GPIO_DeInit(dev->GPIOx);
-	/* Enable the GPIO Clock  */
-	RCC_AHB1PeriphClockCmd(dev->clk, ENABLE);
-}
-#endif
-
 void gpio_init_all(void)
 {
     RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, ENABLE);
@@ -128,14 +116,13 @@ void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode mode)
     assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
     assert_param(IS_GPIO_PIN_SOURCE(pin));
 
-    GPIO_InitTypeDef config;
+    GPIO_Init_t config;
 
     /* Enable the GPIO Clock  */
     RCC_AHB1PeriphClockCmd(dev->clk, ENABLE);
   
     /* Configure the pin */
-    GPIO_StructInit(&config);
-    config.GPIO_Speed = GPIO_Speed_2MHz; // low noise by default
+    config.GPIO_Speed = GPIO_speed_2MHz; // low noise by default
 	
     switch(mode) {
     case GPIO_OUTPUT_PP:
@@ -193,7 +180,38 @@ void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode mode)
     }
 
     config.GPIO_Pin = BIT(pin);
-    GPIO_Init(dev->GPIOx, &config);
+    gpio_init(dev->GPIOx, &config);
 }
 
+void gpio_init(GPIO_TypeDef* GPIOx, GPIO_Init_t* conf)
+{
+  uint32_t pinpos;
+
+  /* ------------------------- Configure the port pins ---------------- */
+  /*-- GPIO Mode Configuration --*/
+  for (pinpos = 0x00; pinpos < 0x10; pinpos++) {
+    uint32_t pos = ((uint32_t)0x01) << pinpos;
+    /* Get the port pins position */
+    uint32_t currentpin = (conf->GPIO_Pin) & pos;
+
+    if (currentpin == pos) {
+      GPIOx->MODER  &= ~(GPIO_MODER_MODER0 << (pinpos * 2));
+      GPIOx->MODER |= (((uint32_t)conf->GPIO_Mode) << (pinpos * 2));
+
+      if ((conf->GPIO_Mode == GPIO_Mode_OUT) || (conf->GPIO_Mode == GPIO_Mode_AF)) {
+        /* Speed mode configuration */
+        GPIOx->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (pinpos * 2));
+        GPIOx->OSPEEDR |= ((uint32_t)(conf->GPIO_Speed) << (pinpos * 2));
+
+        /* Output mode configuration*/
+        GPIOx->OTYPER  &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)pinpos)) ;
+        GPIOx->OTYPER |= (uint16_t)(((uint16_t)conf->GPIO_OType) << ((uint16_t)pinpos));
+      }
+      
+      /* Pull-up Pull down resistor configuration*/
+      GPIOx->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((uint16_t)pinpos * 2));
+      GPIOx->PUPDR |= (((uint32_t)conf->GPIO_PuPd) << (pinpos * 2));
+    }
+  }
+}
 
