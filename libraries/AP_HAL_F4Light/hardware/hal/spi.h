@@ -27,7 +27,7 @@ typedef struct SPI_state {
 
 /** SPI device type */
 typedef struct spi_dev {
-    SPI_TypeDef* SPIx;          
+    SPI_TypeDef* regs;          
     uint8_t      afio;
     IRQn_Type    irq;
     uint16_t     clock;
@@ -79,6 +79,9 @@ typedef enum spi_baud_rate {
 } spi_baud_rate;
 
 
+#define SPI_Mode_Master                 ((uint16_t)0x0104)
+#define SPI_Mode_Slave                  ((uint16_t)0x0000)
+
 #define SPI_BIT_RXNE               ((uint16_t)0x0001)
 #define SPI_BIT_TXE                ((uint16_t)0x0002)
 #define SPI_BIT_CRCERR             ((uint16_t)0x0010)
@@ -113,7 +116,35 @@ typedef enum spi_interrupt {
 #define SPI_INTERRUPTS_ALL              (SPI_TXE_INTERRUPT  |           \
                                          SPI_RXNE_INTERRUPT |           \
                                          SPI_ERR_INTERRUPT)
-                                         
+
+
+
+#define SPI_CPHA_1Edge                  ((uint16_t)0x0000)
+#define SPI_CPHA_2Edge                  ((uint16_t)0x0001)
+
+#define SPI_CPOL_Low                    ((uint16_t)0x0000)
+#define SPI_CPOL_High                   ((uint16_t)0x0002)
+
+#define SPI_FirstBit_MSB                ((uint16_t)0x0000)
+#define SPI_FirstBit_LSB                ((uint16_t)0x0080)                                         
+
+
+#define SPI_CR1_CLEAR_MASK            ((uint16_t)0x3040)
+#define I2SCFGR_CLEAR_MASK        ((uint16_t)0xF040)
+
+
+#define SPI_Direction_2Lines_FullDuplex ((uint16_t)0x0000)
+#define SPI_Direction_2Lines_RxOnly     ((uint16_t)0x0400)
+#define SPI_Direction_1Line_Rx          ((uint16_t)0x8000)
+#define SPI_Direction_1Line_Tx          ((uint16_t)0xC000)
+
+
+#define SPI_DataSize_16b                ((uint16_t)0x0800)
+#define SPI_DataSize_8b                 ((uint16_t)0x0000)
+
+#define SPI_NSS_Soft                    ((uint16_t)0x0200)
+#define SPI_NSS_Hard                    ((uint16_t)0x0000)
+
 
 #ifdef __cplusplus
   extern "C" {
@@ -126,8 +157,7 @@ typedef enum spi_interrupt {
  
 
 static inline void spi_peripheral_enable(const spi_dev *dev) {
-    //    SPI_Cmd(dev->SPIx, ENABLE);
-    dev->SPIx->CR1 |= SPI_CR1_SPE;
+    dev->regs->CR1 |= SPI_CR1_SPE;
 }
 
 /**
@@ -136,15 +166,14 @@ static inline void spi_peripheral_enable(const spi_dev *dev) {
  */
 
 static inline void spi_peripheral_disable(const spi_dev *dev) {
-    //SPI_Cmd(dev->SPIx, DISABLE);
-    dev->SPIx->CR1 &= (uint16_t)~((uint16_t)SPI_CR1_SPE);
+    dev->regs->CR1 &= (uint16_t)~((uint16_t)SPI_CR1_SPE);
 }
 
 void spi_reconfigure(const spi_dev *dev, uint8_t ismaster, uint16_t baudPrescaler, uint16_t bitorder, uint8_t mode);
 
 /**
- * @brief Initialize and reset a SPI device.
- * @param dev Device to initialize and reset.
+ * Initialize and reset a SPI device.
+ * dev Device to initialize and reset.
  */
 void spi_init(const spi_dev *dev);
 
@@ -152,12 +181,6 @@ void spi_init(const spi_dev *dev);
  * @brief Configure GPIO bit modes for use as a SPI port's pins.
  * @param as_master If true, configure bits for use as a bus master.
  *                  Otherwise, configure bits for use as slave.
- * @param nss_dev NSS pin's GPIO device
- * @param comm_dev SCK, MISO, MOSI pins' GPIO device
- * @param nss_bit NSS pin's GPIO bit on nss_dev
- * @param sck_bit SCK pin's GPIO bit on comm_dev
- * @param miso_bit MISO pin's GPIO bit on comm_dev
- * @param mosi_bit MOSI pin's GPIO bit on comm_dev
  */
 
 static inline void spi_master_enable(const spi_dev *dev,
@@ -179,10 +202,6 @@ void spi_gpio_slave_cfg(const spi_dev *dev,
  * The device's peripheral will be disabled before being reconfigured.
  *
  * @param dev Device to configure as bus master
- * @param baud Bus baud rate
- * @param mode SPI mode
- * @param flags Logical OR of spi_cfg_flag values.
- * @see spi_cfg_flag
  */
  
 void spi_gpio_master_cfg(const spi_dev *dev,
@@ -190,8 +209,6 @@ void spi_gpio_master_cfg(const spi_dev *dev,
                   uint8_t sck_bit,
                   uint8_t miso_bit,
                   uint8_t mosi_bit);
- 
-
 
                        
 /**
@@ -225,7 +242,7 @@ int spimaster_transfer(const spi_dev *dev,
                        
 
 static inline uint8_t spi_is_enabled(const spi_dev *dev) {
-    return dev->SPIx->CR1 & SPI_CR1_SPE;
+    return dev->regs->CR1 & SPI_CR1_SPE;
 }
 
 static inline void spi_peripheral_disable_all(void) {
@@ -235,60 +252,57 @@ static inline void spi_peripheral_disable_all(void) {
 
 //[ new ones - for enum spi_interrupt
 static inline void spi_enable_irq(const spi_dev *dev, spi_interrupt interrupt_flags) {
-    dev->SPIx->CR2 |= interrupt_flags;
+    dev->regs->CR2 |= interrupt_flags;
 }
 
 static inline void spi_disable_irq(const spi_dev *dev, spi_interrupt interrupt_flags) {
-    dev->SPIx->CR2 &= ~interrupt_flags;
+    dev->regs->CR2 &= ~interrupt_flags;
 }
 
 
 static inline bool spi_is_irq_enabled(const spi_dev *dev, uint32_t interrupt_flags) {
-    return dev->SPIx->CR2 & interrupt_flags;
+    return dev->regs->CR2 & interrupt_flags;
 }
 //]
 
 static inline uint16_t spi_dff(const spi_dev *dev) {
-    return ((dev->SPIx->CR1 & SPI_size_16b) == SPI_size_8b ? SPI_size_8b : SPI_size_16b);
+    return ((dev->regs->CR1 & SPI_size_16b) == SPI_size_8b ? SPI_size_8b : SPI_size_16b);
 }
 
 static inline uint8_t spi_is_rx_nonempty(const spi_dev *dev) {
-    return (dev->SPIx->SR & SPI_BIT_RXNE);
+    return (dev->regs->SR & SPI_BIT_RXNE);
 }
 
 static inline uint8_t spi_rx_reg(const spi_dev *dev) {
-    return (uint8_t)dev->SPIx->DR;
+    return (uint8_t)dev->regs->DR;
 }
 
 static inline uint8_t spi_is_tx_empty(const spi_dev *dev) {
-    return (dev->SPIx->SR & SPI_BIT_TXE);
+    return (dev->regs->SR & SPI_BIT_TXE);
 }
 
 static inline void spi_tx_reg(const spi_dev *dev, uint8_t val) {
-    dev->SPIx->DR = val;
+    dev->regs->DR = val;
 }
 
 static inline uint8_t spi_is_busy(const spi_dev *dev) {
-    return (dev->SPIx->SR & SPI_BIT_BSY);
+    return (dev->regs->SR & SPI_BIT_BSY);
 }
 
-static inline void spi_wait_busy(const spi_dev *dev) {
-// Wait until the transfer is complete - to not disable CS too early 
+static inline void spi_wait_busy(const spi_dev *dev) {// Wait until the transfer is complete - to not disable CS too early 
     uint32_t dly=3000;
-    while (dev->SPIx->SR & SPI_BIT_BSY){ // but datasheet prohibits this usage
+    while (dev->regs->SR & SPI_BIT_BSY){ // but datasheet prohibits this usage
         dly--;
         if(dly==0) break;
     }
 }
 
-static inline void spi_enable_dma_req(const spi_dev *dev, uint16_t SPI_DMAReq) {
-    /* Enable the selected SPI DMA requests */
-    dev->SPIx->CR2 |= SPI_DMAReq;
+static inline void spi_enable_dma_req(const spi_dev *dev, uint16_t SPI_DMAReq) {   // Enable the selected SPI DMA requests 
+    dev->regs->CR2 |= SPI_DMAReq;
 }
 
-static inline void spi_disable_dma_req(const spi_dev *dev, uint16_t SPI_DMAReq) {
-    /* Disable the selected SPI DMA requests */
-    dev->SPIx->CR2 &= (uint16_t)~SPI_DMAReq;
+static inline void spi_disable_dma_req(const spi_dev *dev, uint16_t SPI_DMAReq) {    // Disable the selected SPI DMA requests
+    dev->regs->CR2 &= (uint16_t)~SPI_DMAReq;
 }
 
 
@@ -297,9 +311,6 @@ static inline void spi_attach_interrupt(const spi_dev *dev, Handler handler){
     
     IRQn_Type irq=dev->irq;
     
-//    NVIC_ClearPendingIRQ(irq);
-//    NVIC_EnableIRQ(irq);
-//    NVIC_SetPriority(irq, SPI_INT_PRIORITY); 
     enable_nvic_irq(irq, SPI_INT_PRIORITY); 
 }
 
