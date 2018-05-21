@@ -76,6 +76,7 @@
 #define I2C_PENDING     255
 #define I2C_DMA_ERROR   100
 
+#define I2C_CR1_CLEAR_MASK    ((uint16_t)0xFBF5)
 
 #define DMA_BUFSIZE 8 // we read just 6 bytes from compass
     
