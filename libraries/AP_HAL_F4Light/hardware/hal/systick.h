@@ -71,6 +71,10 @@ uint32_t systick_micros(void);
 void SysTick_Handler(void);
 
 
+void HAL_WriteBackupRegister(uint32_t RTC_BKP_DR, uint32_t Data);
+uint32_t HAL_ReadBackupRegister(uint32_t RTC_BKP_DR);
+
+
 /*
 void HardFault_Handler(void);
 void MemManage_Handler(void);
@@ -79,6 +83,49 @@ void UsageFault_Handler(void);
 */
 void __attribute__((noreturn)) __error(uint32_t pc, uint32_t num, uint32_t lr, uint32_t flag);
 void __attribute__((noreturn)) error_throb(uint32_t num);
+
+
+// --------- PWR registers bit address in the alias region ---------- 
+#define PWR_OFFSET               (PWR_BASE - PERIPH_BASE)
+
+// PWR CR Register ---
+
+// Alias word address of DBP bit
+#define CR_OFFSET                (PWR_OFFSET + 0x00)
+#define DBP_BitNumber            0x08
+#define CR_DBP_BB                (PERIPH_BB_BASE + (CR_OFFSET * 32) + (DBP_BitNumber * 4))
+
+// Alias word address of PVDE bit 
+#define PVDE_BitNumber           0x04
+#define CR_PVDE_BB               (PERIPH_BB_BASE + (CR_OFFSET * 32) + (PVDE_BitNumber * 4))
+
+// Alias word address of FPDS bit 
+#define FPDS_BitNumber           0x09
+#define CR_FPDS_BB               (PERIPH_BB_BASE + (CR_OFFSET * 32) + (FPDS_BitNumber * 4))
+
+// Alias word address of PMODE bit 
+#define PMODE_BitNumber           0x0E
+#define CR_PMODE_BB               (PERIPH_BB_BASE + (CR_OFFSET * 32) + (PMODE_BitNumber * 4))
+
+
+// --- CSR Register ---
+
+// Alias word address of EWUP bit
+#define CSR_OFFSET               (PWR_OFFSET + 0x04)
+#define EWUP_BitNumber           0x08
+#define CSR_EWUP_BB              (PERIPH_BB_BASE + (CSR_OFFSET * 32) + (EWUP_BitNumber * 4))
+
+// Alias word address of BRE bit 
+#define BRE_BitNumber            0x09
+#define CSR_BRE_BB              (PERIPH_BB_BASE + (CSR_OFFSET * 32) + (BRE_BitNumber * 4))
+
+// ------------------ PWR registers bit mask ------------------------ 
+
+// CR register bit mask 
+#define CR_DS_MASK               ((uint32_t)0xFFFFFFFC)
+#define CR_PLS_MASK              ((uint32_t)0xFFFFFF1F)
+#define CR_VOS_MASK              ((uint32_t)0xFFFF3FFF)
+
 
 
 #ifdef __cplusplus
