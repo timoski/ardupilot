@@ -80,7 +80,7 @@ void adc_init(const adc_dev *dev) {
     // external trigger event and edge, data alignment and continuous conversion mode
     dev->regs->CR2 = tmp | (uint32_t)(ADC_DataAlign_Right | ADC_ExternalTrigConv_T1_CC1 | ADC_ExternalTrigConvEdge_None | DISABLE << 1);
 
-    tmp = dev->regs->SQR1 & SQR1_L_RESET;;   // Clear L bits
+    tmp = dev->regs->SQR1 & SQR1_L_RESET;   // Clear L bits
     uint32_t nc = (uint8_t)(1 /* number of conversions */ - (uint8_t)1); // regular channel sequence length 
     dev->regs->SQR1 =tmp | ((uint32_t)nc << 20);
 }

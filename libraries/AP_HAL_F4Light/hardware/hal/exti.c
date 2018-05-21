@@ -124,7 +124,6 @@ void exti_attach_interrupt_pri(afio_exti_num num,
 
     // clear active request
     exti_clear_pending_bit(line);
-        
 
     // Clear EXTI line configuration
     EXTI->IMR &= ~line;
@@ -137,9 +136,8 @@ void exti_attach_interrupt_pri(afio_exti_num num,
     EXTI->FTSR &= ~line;
 
     EXTITrigger_t trg = get_exti_mode(mode);
-    /* Select the trigger for the selected external interrupts */
-    if (trg == EXTI_Trigger_Rising_Falling) {
-      /* Rising Falling edge */
+    // Select the trigger for the selected external interrupts 
+    if (trg == EXTI_Trigger_Rising_Falling) {     // Rising & Falling edge 
       EXTI->RTSR |= line;
       EXTI->FTSR |= line;
     } else {
@@ -147,7 +145,7 @@ void exti_attach_interrupt_pri(afio_exti_num num,
       *(__IO uint32_t *) addr |= line;
     }
 
-    /* Enable and set EXTI Line Interrupt to the given priority */
+    // Enable and set EXTI Line Interrupt to the given priority
     enable_nvic_irq(exti_channels[num].irq_type, priority);  // we init NVIC for 4 bit preemption,  0 bit subpriority 
 }
 
