@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <boards.h>
+#include "gpio_hal.h"
 
 // bugfixes to ST USB stack - https://github.com/olegv142/stm32tivc_usb_cdc
 // register description - http://mcu.goodboard.ru/viewtopic.php?id=40
@@ -298,11 +299,6 @@ void usb_default_attr(usb_attr_t *attr)
     attr->preempt_prio = 0;
     attr->sub_prio = 0;
     attr->use_present_pin = 0;
-//    attr->description = NULL;
-//    attr->manufacturer = NULL;
-//    attr->serial_number = NULL;
-//    attr->configuration = NULL;
-//    attr->interface = NULL;
 }
 
 /*--------------------------- usb_periphcfg -------------------------------*/
@@ -311,37 +307,34 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev){ // callback for hardware init
     return;
 }
 
-int usb_periphcfg(FunctionalState state)
+int usb_periphcfg(bool state)
 {
     USB_OTG_BSP_DisableInterrupt(); // disable IRQ
     
-    if (state == ENABLE) {
+    if (state) {
 
 	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOA , ENABLE); // USB on GPIO_A
 
-	/* Configure USB D-/D+ (DM/DP) pins */
-	GPIO_InitTypeDef GPIO_InitStructure;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12; // sometimes touching of GPIO_Pin_12 causes interrupt which will not be served
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	// Configure USB D-/D+ (DM/DP) pins.  sometimes touching of GPIO_Pin_12 causes interrupt which will not be served
+        gpio_set_mode( DM_PIN_PORT, DM_PIN_PIN, GPIO_AF_OUTPUT_PP);
+        gpio_set_speed(DM_PIN_PORT, DM_PIN_PIN, GPIO_speed_100MHz);
 
-	gpio_set_af_mode(_GPIOA, GPIO_PinSource11, GPIO_AF_OTG1_FS);
-	gpio_set_af_mode(_GPIOA, GPIO_PinSource12, GPIO_AF_OTG1_FS);
+        gpio_set_mode( DP_PIN_PORT, DP_PIN_PIN, GPIO_AF_OUTPUT_PP);
+        gpio_set_speed(DP_PIN_PORT, DP_PIN_PIN, GPIO_speed_100MHz); 
 
+	gpio_set_af_mode(DM_PIN_PORT, DM_PIN_PIN, GPIO_AF_OTG1_FS);
+	gpio_set_af_mode(DP_PIN_PORT, DP_PIN_PIN, GPIO_AF_OTG1_FS);
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-	RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE) ;
+	RCC_enableAPB2_clk(RCC_APB2Periph_SYSCFG);
+	RCC_enableAHB2_clk(RCC_AHB2Periph_OTG_FS);
+	RCC_enableAHB2_clk(USB_CLOCK);
     } else {
 	gpio_set_mode(DM_PIN_PORT, DM_PIN_PIN, GPIO_INPUT_FLOATING);
 	gpio_set_mode(DP_PIN_PORT, DP_PIN_PIN, GPIO_INPUT_FLOATING);
 	// we should not disable sysfg clock..
+	RCC_disableAHB2_clk(USB_CLOCK);
     }
  
-    RCC_AHB2PeriphClockCmd(USB_CLOCK, state);
-	
     return 1;
 }
 
@@ -368,8 +361,6 @@ void usb_setParams(usb_attr_t * attr)
 	return;
 
     if (attr->use_present_pin) {
-	if (!IS_GPIO_ALL_PERIPH(attr->present_port->GPIOx) || !IS_GPIO_PIN_SOURCE(attr->present_pin))
-		return;
 	gpio_set_mode(attr->present_port, attr->present_pin, GPIO_INPUT_FLOATING);
     }
 

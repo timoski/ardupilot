@@ -15,7 +15,7 @@ based on: LeafLabs
  */
 
 const gpio_dev gpioa = {
-    .GPIOx     = GPIOA,
+    .regs     = GPIOA,
     .clk       = RCC_AHB1Periph_GPIOA,
     .exti_port = AFIO_EXTI_PA,
 };
@@ -23,7 +23,7 @@ const gpio_dev gpioa = {
 const gpio_dev* const _GPIOA = &gpioa;
 
 const gpio_dev gpiob = {
-    .GPIOx      = GPIOB,
+    .regs      = GPIOB,
     .clk       = RCC_AHB1Periph_GPIOB,
     .exti_port = AFIO_EXTI_PB,
 };
@@ -31,7 +31,7 @@ const gpio_dev gpiob = {
 const gpio_dev* const _GPIOB = &gpiob;
 
 const gpio_dev gpioc = {
-    .GPIOx      = GPIOC,
+    .regs      = GPIOC,
     .clk       = RCC_AHB1Periph_GPIOC,
     .exti_port = AFIO_EXTI_PC,
 };
@@ -39,7 +39,7 @@ const gpio_dev gpioc = {
 const gpio_dev* const _GPIOC = &gpioc;
 
 const gpio_dev gpiod = {
-    .GPIOx      = GPIOD,
+    .regs      = GPIOD,
     .clk       = RCC_AHB1Periph_GPIOD,
     .exti_port = AFIO_EXTI_PD,
 };
@@ -47,7 +47,7 @@ const gpio_dev gpiod = {
 const gpio_dev* const _GPIOD = &gpiod;
 
 const gpio_dev gpioe = {
-    .GPIOx      = GPIOE,
+    .regs      = GPIOE,
     .clk       = RCC_AHB1Periph_GPIOE,
     .exti_port = AFIO_EXTI_PE,
 };
@@ -55,7 +55,7 @@ const gpio_dev gpioe = {
 const gpio_dev* const _GPIOE = &gpioe;
 
 const gpio_dev gpiof = {
-    .GPIOx      = GPIOF,
+    .regs      = GPIOF,
     .clk       = RCC_AHB1Periph_GPIOF,
     .exti_port = AFIO_EXTI_PF,
 };
@@ -63,7 +63,7 @@ const gpio_dev gpiof = {
 const gpio_dev* const _GPIOF = &gpiof;
 
 const gpio_dev gpiog = {
-    .GPIOx      = GPIOG,
+    .regs      = GPIOG,
     .clk       = RCC_AHB1Periph_GPIOG,
     .exti_port = AFIO_EXTI_PG,
 };
@@ -74,18 +74,6 @@ const gpio_dev* const _GPIOG = &gpiog;
 
 static const gpio_dev* _gpios[] =  { &gpioa, &gpiob, &gpioc, &gpiod, &gpioe, &gpiof, &gpiog };
 
-
-#if 0 // unused
-
-void gpio_init(const gpio_dev* const dev) 
-{
-	/* Check the parameters */
-	assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-	GPIO_DeInit(dev->GPIOx);
-	/* Enable the GPIO Clock  */
-	RCC_AHB1PeriphClockCmd(dev->clk, ENABLE);
-}
-#endif
 
 void gpio_init_all(void)
 {
@@ -122,78 +110,87 @@ void gpio_init_all(void)
 
 
 
-void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode mode)
+void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode pin_mode)
 {
-    /* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-    assert_param(IS_GPIO_PIN_SOURCE(pin));
-
-    GPIO_InitTypeDef config;
 
     /* Enable the GPIO Clock  */
-    RCC_AHB1PeriphClockCmd(dev->clk, ENABLE);
+    RCC_enableAHB1_clk(dev->clk);
+
+    uint32_t mode, pull, type;
   
     /* Configure the pin */
-    GPIO_StructInit(&config);
-    config.GPIO_Speed = GPIO_Speed_2MHz; // low noise by default
+    uint32_t Speed = GPIO_speed_2MHz; // low noise by default
+    
 	
-    switch(mode) {
+    switch(pin_mode) {
     case GPIO_OUTPUT_PP:
-	config.GPIO_Mode = GPIO_Mode_OUT;
-	config.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	config.GPIO_OType = GPIO_OType_PP;
+	mode = GPIO_Mode_OUT;
+	pull = GPIO_PuPd_NOPULL;
+	type = GPIO_OType_PP;
 	break;
     case GPIO_OUTPUT_OD:
-	config.GPIO_Mode = GPIO_Mode_OUT;
-	config.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	config.GPIO_OType = GPIO_OType_OD;
+	mode = GPIO_Mode_OUT;
+	pull = GPIO_PuPd_NOPULL;
+	type = GPIO_OType_OD;
 	break;
     case GPIO_OUTPUT_OD_PU:
-	config.GPIO_Mode = GPIO_Mode_OUT;
-	config.GPIO_PuPd = GPIO_PuPd_UP;
-	config.GPIO_OType = GPIO_OType_OD;
+	mode = GPIO_Mode_OUT;
+	pull = GPIO_PuPd_UP;
+	type = GPIO_OType_OD;
 	break;
     case GPIO_INPUT_FLOATING:
-	config.GPIO_Mode = GPIO_Mode_IN;
-	config.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	config.GPIO_OType = GPIO_OType_PP;
+	mode = GPIO_Mode_IN;
+	pull = GPIO_PuPd_NOPULL;
+	type = GPIO_OType_PP;
 	break;
     case GPIO_INPUT_ANALOG:
-	config.GPIO_Mode = GPIO_Mode_AN;
-	config.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	config.GPIO_OType = GPIO_OType_PP;
+	mode = GPIO_Mode_AN;
+	pull = GPIO_PuPd_NOPULL;
+	type = GPIO_OType_PP;
 	break;
     case GPIO_INPUT_PU:
-	config.GPIO_Mode = GPIO_Mode_IN;
-	config.GPIO_PuPd = GPIO_PuPd_UP;
-	config.GPIO_OType = GPIO_OType_PP;
+	mode = GPIO_Mode_IN;
+	pull = GPIO_PuPd_UP;
+	type = GPIO_OType_PP;
 	break;
     case GPIO_INPUT_PD:
-	config.GPIO_Mode = GPIO_Mode_IN;
-	config.GPIO_PuPd = GPIO_PuPd_DOWN;
-	config.GPIO_OType = GPIO_OType_PP;
+	mode = GPIO_Mode_IN;
+	pull = GPIO_PuPd_DOWN;
+	type = GPIO_OType_PP;
 	break;
     case GPIO_AF_OUTPUT_PP:
-	config.GPIO_Mode = GPIO_Mode_AF;
-	config.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	config.GPIO_OType = GPIO_OType_PP;
+	mode = GPIO_Mode_AF;
+	pull = GPIO_PuPd_NOPULL;
+	type = GPIO_OType_PP;
 	break;
     case GPIO_AF_OUTPUT_OD:
-	config.GPIO_Mode = GPIO_Mode_AF;
-	config.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	config.GPIO_OType = GPIO_OType_OD;
+	mode = GPIO_Mode_AF;
+	pull = GPIO_PuPd_NOPULL;
+	type = GPIO_OType_OD;
 	break;
     case GPIO_AF_OUTPUT_OD_PU:
-	config.GPIO_Mode = GPIO_Mode_AF;
-	config.GPIO_PuPd = GPIO_PuPd_UP;
-	config.GPIO_OType = GPIO_OType_OD;
+	mode = GPIO_Mode_AF;
+	pull = GPIO_PuPd_UP;
+	type = GPIO_OType_OD;
 	break;
     default:
 	return;
     }
 
-    config.GPIO_Pin = BIT(pin);
-    GPIO_Init(dev->GPIOx, &config);
+    dev->regs->MODER  &= ~(GPIO_MODER_MODER0 << pin * 2);
+    dev->regs->MODER |= (uint32_t)mode << pin * 2;
+
+    if ((mode == GPIO_Mode_OUT) || (mode == GPIO_Mode_AF)) {
+        // Speed 
+        dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << pin * 2);
+        dev->regs->OSPEEDR |= (uint32_t)Speed << pin * 2;
+
+        // Output mode
+        dev->regs->OTYPER  &= ~(GPIO_OTYPER_OT_0 << pin) ;
+        dev->regs->OTYPER |= (uint16_t)((uint16_t)type << pin);
+    }
+      
+    // Pull-up/Pull down 
+    dev->regs->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << pin * 2);
+    dev->regs->PUPDR |= (uint32_t)pull << pin * 2;
 }
-
-

@@ -692,7 +692,7 @@ void SPIDevice::init(){
             gpio_write_bit(sck_dev, sck_bit, 1); // passive SCK high
             
 
-            sck_port = sck_dev->GPIOx;
+            sck_port = sck_dev->regs;
             sck_pin  = 1<<sck_bit;
         }
 
@@ -705,7 +705,7 @@ void SPIDevice::init(){
             gpio_set_speed(mosi_dev, mosi_bit, GPIO_speed_100MHz);
             gpio_write_bit(mosi_dev, mosi_bit, 1); // passive MOSI high
 
-            mosi_port = mosi_dev->GPIOx;
+            mosi_port = mosi_dev->regs;
             mosi_pin  = 1<<mosi_bit;
         }
 
@@ -717,7 +717,7 @@ void SPIDevice::init(){
             gpio_set_mode(miso_dev,  miso_bit, GPIO_INPUT_PU);
             gpio_set_speed(miso_dev, miso_bit, GPIO_speed_100MHz);
 
-            miso_port = miso_dev->GPIOx;
+            miso_port = miso_dev->regs;
             miso_pin  = 1<<miso_bit;
         }
 
