@@ -180,6 +180,20 @@ void usart_foreach(void (*fn)(const usart_dev*))
 
 extern uint32_t us_ticks;
 
+
+// USART CR1 register clear Mask ((~(uint16_t)0xE9F3))
+#define CR1_CLEAR_MASK            ((uint16_t)(USART_CR1_M | USART_CR1_PCE | \
+                                              USART_CR1_PS | USART_CR1_TE | \
+                                              USART_CR1_RE))
+
+// USART CR2 register clock bits clear Mask ((~(uint16_t)0xF0FF)) 
+#define CR2_CLOCK_CLEAR_MASK      ((uint16_t)(USART_CR2_CLKEN | USART_CR2_CPOL | \
+                                              USART_CR2_CPHA | USART_CR2_LBCL))
+
+// USART CR3 register clear Mask ((~(uint16_t)0xFCFF)) 
+#define CR3_CLEAR_MASK            ((uint16_t)(USART_CR3_RTSE | USART_CR3_CTSE))
+
+
 /**
  * @brief Initialize a serial port.
  * @param dev         Serial port to be initialized
@@ -219,35 +233,84 @@ void usart_setup(const usart_dev *dev, uint32_t baudRate, uint16_t wordLength,
     rb_init(dev->txrb, USART_TX_BUF_SIZE, dev->state->tx_buf);
     rb_init(dev->rxrb, USART_RX_BUF_SIZE, dev->state->rx_buf);
 
-    /* Enables the USART's 8x oversampling mode. */
-    USART_OverSampling8Cmd(dev->USARTx, ENABLE);
+    uint32_t tmpreg = dev->USARTx->CR2 & (uint32_t)~((uint32_t)CR2_CLOCK_CLEAR_MASK) &   /* Clear CLKEN, CPOL, CPHA and LBCL bits */
+                                         (uint32_t)~((uint32_t)USART_CR2_STOP); // Clear STOP[13:12] bits 
+    /* Configure the USART Clock, CPOL, CPHA and LastBit ------------*/
+    /* Set CLKEN bit according to USART_Clock value */
+    /* Set CPOL bit according to USART_CPOL value */
+    /* Set CPHA bit according to USART_CPHA value */
+    /* Set LBCL bit according to USART_LastBit value */
+    tmpreg |= (uint32_t)USART_Clock_Disable | USART_CPOL_Low | USART_CPHA_1Edge | USART_LastBit_Disable | (uint32_t)stopBits;;
+    dev->USARTx->CR2 = (uint16_t)tmpreg;
 
-    USART_ClockInitTypeDef USART_InitClock;
-    USART_ClockStructInit(&USART_InitClock);
-    USART_ClockInit(dev->USARTx, &USART_InitClock);
 
-    USART_InitTypeDef USART_config;
-    USART_StructInit(&USART_config);
-    USART_config.USART_BaudRate = baudRate;
-    USART_config.USART_WordLength = wordLength;
-    USART_config.USART_StopBits = stopBits;
-    USART_config.USART_Parity = parity;
-    USART_config.USART_Mode = mode;
-    USART_config.USART_HardwareFlowControl = hardwareFlowControl;
+//---------------------------- USART CR1 Configuration -----------------------
+     
+    tmpreg = dev->USARTx->CR1 & (uint32_t)~((uint32_t)CR1_CLEAR_MASK); // Clear M, PCE, PS, TE and RE bits 
 
-    USART_Init(dev->USARTx, &USART_config);
+    // Configure the USART Word Length, Parity and mode: 
+    // Set the M bits according to USART_WordLength value 
+    // Set PCE and PS bits according to USART_Parity value
+    // Set TE and RE bits according to USART_Mode value 
+    // Enables the USART's 8x oversampling mode.
+    tmpreg |= (uint32_t)wordLength | parity | mode | USART_CR1_OVER8;
+
+    /* Write to USART CR1 */
+    dev->USARTx->CR1 = (uint16_t)tmpreg;
+
+//---------------------------- USART CR3 Configuration -----------------------
+     
+    tmpreg = dev->USARTx->CR3  & (uint32_t)~((uint32_t)CR3_CLEAR_MASK); // Clear CTSE and RTSE bits
+
+    // Configure the USART HFC : 
+    //    Set CTSE and RTSE bits according to USART_HardwareFlowControl value 
+    tmpreg |= hardwareFlowControl;
+
+    /* Write to USART CR3 */
+    dev->USARTx->CR3 = (uint16_t)tmpreg;
+  
+  /*---------------------------- USART BRR Configuration -----------------------*/
+
+    uint32_t apbclock = 0x00;
+    uint32_t integerdivider = 0x00;
+    uint32_t fractionaldivider = 0x00;
+    
+    RCC_ClocksTypeDef RCC_ClocksStatus;
+
+    // Configure the USART Baud Rate 
+    RCC_GetClocksFreq(&RCC_ClocksStatus);
+
+    if ((dev->USARTx == USART1) || (dev->USARTx == USART6)) {
+        apbclock = RCC_ClocksStatus.PCLK2_Frequency;
+    } else {
+        apbclock = RCC_ClocksStatus.PCLK1_Frequency;
+    }
+
+    // Determine the integer part 
+    /* Integer part computing in case Oversampling mode is 8 Samples */
+    integerdivider = (25 * apbclock) / (2 * baudRate);
+    tmpreg = (integerdivider / 100) << 4;
+
+    // Determine the fractional part 
+    fractionaldivider = integerdivider - (100 * (tmpreg >> 4));
+
+    // Implement the fractional part in the register 
+    tmpreg |= ((((fractionaldivider * 8) + 50) / 100)) & ((uint8_t)0x07);
+    dev->USARTx->BRR = (uint16_t)tmpreg;
+  
+
 
     dev->USARTx->CR1 &= ~(USART_MASK_IDLEIE | USART_MASK_RXNEIE | USART_MASK_TCEIE | USART_MASK_TXEIE | USART_MASK_PEIE);
     dev->USARTx->CR2 &= ~(USART_MASK2_LBDIE);
     dev->USARTx->CR3 &= ~(USART_MASK3_CTSIE | USART_MASK3_EIE);
     
-    if(mode & USART_Mode_Rx) { /* Enable Rx request */
-        USART_ClearFlag(dev->USARTx, USART_FLAG_RXNE);
+    if(mode & UART_Mode_Rx) { /* Enable Rx request */
+        dev->USARTx->SR = (uint16_t)~USART_FLAG_RXNE;
         dev->USARTx->CR1 |= USART_MASK_RXNEIE;
     }
 
-    if(mode & USART_Mode_Tx) {
-        USART_ClearFlag(dev->USARTx, USART_FLAG_TC);
+    if(mode & UART_Mode_Tx) {
+        dev->USARTx->SR = (uint16_t)~USART_FLAG_TC;
     }    
 
     enable_nvic_irq(dev->irq, UART_INT_PRIORITY);

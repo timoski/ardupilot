@@ -83,6 +83,28 @@ extern const usart_dev * const _USART6;
 #define UART_Word_8b                  ((uint16_t)0x0000)
 #define UART_Word_9b                  ((uint16_t)0x1000)
 
+#define USART_Clock_Disable           ((uint16_t)0x0000)
+#define USART_Clock_Enable            ((uint16_t)0x0800)
+#define USART_CPOL_Low                ((uint16_t)0x0000)
+#define USART_CPOL_High               ((uint16_t)0x0400)
+
+#define USART_CPHA_1Edge              ((uint16_t)0x0000)
+#define USART_CPHA_2Edge              ((uint16_t)0x0200)
+
+#define USART_FLAG_CTS                       ((uint16_t)0x0200)
+#define USART_FLAG_LBD                       ((uint16_t)0x0100)
+#define USART_FLAG_TXE                       ((uint16_t)0x0080)
+#define USART_FLAG_TC                        ((uint16_t)0x0040)
+#define USART_FLAG_RXNE                      ((uint16_t)0x0020)
+#define USART_FLAG_IDLE                      ((uint16_t)0x0010)
+#define USART_FLAG_ORE                       ((uint16_t)0x0008)
+#define USART_FLAG_NE                        ((uint16_t)0x0004)
+#define USART_FLAG_FE                        ((uint16_t)0x0002)
+#define USART_FLAG_PE                        ((uint16_t)0x0001)
+
+#define USART_LastBit_Disable                ((uint16_t)0x0000)
+#define USART_LastBit_Enable                 ((uint16_t)0x0100)
+
 /**
  * @brief Initialize a serial port.
  * @param dev         Serial port to be initialized
