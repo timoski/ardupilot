@@ -37,6 +37,7 @@ based on:
 
 #include "boards.h"
 #include <usb.h>
+#include <debug.h>
 
 static void setupNVIC(void);
 static void enableFPU(void);
