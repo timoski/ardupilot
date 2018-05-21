@@ -32,7 +32,7 @@ typedef struct usart_state {
 
 /** USART device type */
 typedef struct usart_dev {
-    USART_TypeDef* USARTx;             /**< Register map */
+    USART_TypeDef* regs;             /**< Register map */
     uint32_t clk;
     IRQn_Type irq;
     uint8_t rx_pin;
@@ -82,6 +82,28 @@ extern const usart_dev * const _USART6;
 
 #define UART_Word_8b                  ((uint16_t)0x0000)
 #define UART_Word_9b                  ((uint16_t)0x1000)
+
+#define USART_Clock_Disable           ((uint16_t)0x0000)
+#define USART_Clock_Enable            ((uint16_t)0x0800)
+#define USART_CPOL_Low                ((uint16_t)0x0000)
+#define USART_CPOL_High               ((uint16_t)0x0400)
+
+#define USART_CPHA_1Edge              ((uint16_t)0x0000)
+#define USART_CPHA_2Edge              ((uint16_t)0x0200)
+
+#define USART_FLAG_CTS                       ((uint16_t)0x0200)
+#define USART_FLAG_LBD                       ((uint16_t)0x0100)
+#define USART_FLAG_TXE                       ((uint16_t)0x0080)
+#define USART_FLAG_TC                        ((uint16_t)0x0040)
+#define USART_FLAG_RXNE                      ((uint16_t)0x0020)
+#define USART_FLAG_IDLE                      ((uint16_t)0x0010)
+#define USART_FLAG_ORE                       ((uint16_t)0x0008)
+#define USART_FLAG_NE                        ((uint16_t)0x0004)
+#define USART_FLAG_FE                        ((uint16_t)0x0002)
+#define USART_FLAG_PE                        ((uint16_t)0x0001)
+
+#define USART_LastBit_Disable                ((uint16_t)0x0000)
+#define USART_LastBit_Enable                 ((uint16_t)0x0100)
 
 /**
  * @brief Initialize a serial port.
@@ -156,13 +178,8 @@ static inline void usart_enable(const usart_dev *dev)
 {
     dev->state->is_used=true;
 
-    /* Check the parameters */
-    assert_param(IS_USART_ALL_PERIPH(dev->USARTx));
-
-    /* Enable USART */
-//    USART_Cmd(dev->USARTx, ENABLE);
-    
-    dev->USARTx->CR1 |= USART_CR1_UE; /* Enable the selected USART by setting the UE bit in the CR1 register */
+    /* Enable USART */    
+    dev->regs->CR1 |= USART_CR1_UE; /* Enable the selected USART by setting the UE bit in the CR1 register */
 
 }
 
@@ -179,7 +196,7 @@ static inline uint8_t usart_is_used(const usart_dev *dev)
  */
 static inline void usart_disable(const usart_dev *dev){
     /* Disable the selected USART by clearing the UE bit in the CR1 register */
-    dev->USARTx->CR1 &= (uint16_t)~((uint16_t)USART_CR1_UE);
+    dev->regs->CR1 &= (uint16_t)~((uint16_t)USART_CR1_UE);
     
     /* Clean up buffer */
     dev->state->is_used=false;

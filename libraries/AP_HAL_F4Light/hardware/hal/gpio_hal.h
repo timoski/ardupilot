@@ -19,6 +19,80 @@
 #define HAL_GPIO_ALT    2
 
 */
+
+// AF 0 (default) selection  
+#define GPIO_AF_RTC_50Hz      ((uint8_t)0x00)  // RTC_50Hz 
+#define GPIO_AF_MCO           ((uint8_t)0x00)  // MCO (MCO1 and MCO2) 
+#define GPIO_AF_TAMPER        ((uint8_t)0x00)  // TAMPER (TAMPER_1 and TAMPER_2) 
+#define GPIO_AF_SWJ           ((uint8_t)0x00)  // SWJ (SWD and JTAG) 
+#define GPIO_AF_TRACE         ((uint8_t)0x00)  // TRACE 
+
+
+#define GPIO_AF_TIM1          ((uint8_t)0x01)  // TIM1 
+#define GPIO_AF_TIM2          ((uint8_t)0x01)  // TIM2 
+
+// AF 2 selection  
+#define GPIO_AF_TIM3          ((uint8_t)0x02)  // TIM3 
+#define GPIO_AF_TIM4          ((uint8_t)0x02)  // TIM4 
+#define GPIO_AF_TIM5          ((uint8_t)0x02)  // TIM5 
+
+// AF 3 selection  
+#define GPIO_AF_TIM8          ((uint8_t)0x03)  // TIM8 
+#define GPIO_AF_TIM9          ((uint8_t)0x03)  // TIM9 
+#define GPIO_AF_TIM10         ((uint8_t)0x03)  // TIM10 
+#define GPIO_AF_TIM11         ((uint8_t)0x03)  // TIM11 
+
+// AF 4 selection  
+#define GPIO_AF_I2C1          ((uint8_t)0x04)  // I2C1 
+#define GPIO_AF_I2C2          ((uint8_t)0x04)  // I2C2 
+#define GPIO_AF_I2C3          ((uint8_t)0x04)  // I2C3 
+
+// AF 5 selection  
+#define GPIO_AF_SPI1          ((uint8_t)0x05)  // SPI1      
+#define GPIO_AF_SPI2          ((uint8_t)0x05)  // SPI2/I2S2 
+#define GPIO_AF_SPI4          ((uint8_t)0x05)  // SPI4      
+#define GPIO_AF_SPI5          ((uint8_t)0x05)  // SPI5      
+#define GPIO_AF_SPI6          ((uint8_t)0x05)  // SPI6      
+
+// AF 6 selection  
+#define GPIO_AF_SPI3          ((uint8_t)0x06)  // SPI3/I2S3 
+
+// AF 7 selection  
+#define GPIO_AF_USART1        ((uint8_t)0x07)  // USART1  
+#define GPIO_AF_USART2        ((uint8_t)0x07)  // USART2  
+#define GPIO_AF_USART3        ((uint8_t)0x07)  // USART3  
+#define GPIO_AF_I2S3ext       ((uint8_t)0x07)  // I2S3ext 
+
+// AF 8 selection  
+#define GPIO_AF_UART4         ((uint8_t)0x08)  // UART4  
+#define GPIO_AF_UART5         ((uint8_t)0x08)  // UART5  
+#define GPIO_AF_USART6        ((uint8_t)0x08)  // USART6 
+#define GPIO_AF_UART7         ((uint8_t)0x08)  // UART7  
+#define GPIO_AF_UART8         ((uint8_t)0x08)  // UART8  
+
+//   AF 9 selection 
+#define GPIO_AF_CAN1          ((uint8_t)0x09)  // CAN1  
+#define GPIO_AF_CAN2          ((uint8_t)0x09)  // CAN2  
+#define GPIO_AF_TIM12         ((uint8_t)0x09)  // TIM12 
+#define GPIO_AF_TIM13         ((uint8_t)0x09)  // TIM13 
+#define GPIO_AF_TIM14         ((uint8_t)0x09)  // TIM14 
+
+// AF 10 selection  
+#define GPIO_AF_OTG_FS         ((uint8_t)0xA)  // OTG_FS 
+#define GPIO_AF_OTG_HS         ((uint8_t)0xA)  // OTG_HS 
+
+//  AF 11 selection  
+#define GPIO_AF_ETH             ((uint8_t)0x0B)  // ETHERNET 
+
+// AF 12 selection  
+#define GPIO_AF_FSMC             ((uint8_t)0xC)  // FSMC                     
+
+#define GPIO_AF_OTG_HS_FS        ((uint8_t)0xC)  // OTG HS configured in FS, 
+#define GPIO_AF_SDIO             ((uint8_t)0xC)  // SDIO                     
+
+//     AF 13 selection  
+#define GPIO_AF_DCMI          ((uint8_t)0x0D)  // DCMI
+
  
 typedef enum gpio_pin_mode {
     GPIO_INPUT_FLOATING, 	/**< Input floating. */
@@ -179,4 +253,5 @@ static inline void afio_exti_select(afio_exti_port gpio_port, afio_exti_num pin)
 #endif
  
 #endif
+
 
