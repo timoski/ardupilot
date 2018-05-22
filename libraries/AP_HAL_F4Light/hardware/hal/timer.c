@@ -42,6 +42,7 @@ based on:
 #include <string.h>
 #include "nvic.h"
 #include "gpio_hal.h"
+#include "rcc.h"
 
 /* Just like the corresponding DIER bits:
  * [0] = Update handler;
@@ -327,7 +328,6 @@ void timer_reset(const timer_dev *dev) {
     	RCC_APB1PeriphResetCmd(dev->clk, ENABLE);
         RCC_APB1PeriphResetCmd(dev->clk, DISABLE);
     }
-
 }
 
 /**

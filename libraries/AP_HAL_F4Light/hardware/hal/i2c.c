@@ -194,7 +194,7 @@ void i2c_init(const i2c_dev *dev, uint16_t address, uint32_t speed)
     uint16_t tmpreg;
     uint16_t result;
     uint32_t pclk1;
-    RCC_ClocksTypeDef  rcc_clocks;
+    RCC_Clocks_t  rcc_clocks;
   
 //---------------------------- I2Cx CR2 Configuration ------------------------
     tmpreg = dev->I2Cx->CR2 & (uint16_t)~((uint16_t)I2C_CR2_FREQ); /* Clear frequency FREQ[5:0] bits */

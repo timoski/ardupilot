@@ -11,6 +11,7 @@ based on: LeafLabs
 #include "hal.h"
 #include "util.h"
 #include "nvic.h"
+#include "rcc.h"
 
 
 typedef struct exti_channel {

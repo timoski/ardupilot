@@ -275,7 +275,7 @@ void usart_setup(const usart_dev *dev, uint32_t baudRate, uint16_t wordLength,
     uint32_t integerdivider = 0x00;
     uint32_t fractionaldivider = 0x00;
     
-    RCC_ClocksTypeDef RCC_ClocksStatus;
+    RCC_Clocks_t RCC_ClocksStatus;
 
     // Configure the USART Baud Rate 
     RCC_GetClocksFreq(&RCC_ClocksStatus);

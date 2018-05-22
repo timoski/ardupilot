@@ -42,6 +42,7 @@ based on:
 #include <string.h>
 #include "util.h"
 #include "nvic.h"
+#include "rcc.h"
 
 /*
  * Devices

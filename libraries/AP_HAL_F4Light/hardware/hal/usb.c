@@ -12,6 +12,7 @@
 #include <string.h>
 #include <boards.h>
 #include "gpio_hal.h"
+#include "rcc.h"
 
 // bugfixes to ST USB stack - https://github.com/olegv142/stm32tivc_usb_cdc
 // register description - http://mcu.goodboard.ru/viewtopic.php?id=40
