@@ -81,7 +81,6 @@ struct PPM_State  {
     Pulse pulse_mem[PULSES_QUEUE_SIZE]; // memory
 };
 */
-
         if (timer->regs == tim){
 	        
             uint16_t bit = 1<<(p->timer_channel & TIMER_CH_MASK);

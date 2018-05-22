@@ -203,7 +203,7 @@ void usart_init(const usart_dev *dev)  {
     if (dev->regs == USART1 || dev->regs == USART6 )
 	RCC_enableAPB2_clk(dev->clk);       // we must wait some time before access to
     else
-	RCC_APB1PeriphClockCmd(dev->clk, ENABLE);
+	RCC_enableAPB1_clk(dev->clk);
 
 }
 

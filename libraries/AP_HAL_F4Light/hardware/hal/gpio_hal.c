@@ -8,6 +8,7 @@ based on: LeafLabs
 #pragma GCC optimize ("O2")
 
 #include <gpio_hal.h>
+#include "rcc.h"
 
 
 /*
@@ -77,50 +78,26 @@ static const gpio_dev* _gpios[] =  { &gpioa, &gpiob, &gpioc, &gpiod, &gpioe, &gp
 
 void gpio_init_all(void)
 {
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOB, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOC, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOD, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOE, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOF, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOG, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOG, DISABLE);
-
-    
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOA);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOB);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOC);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOD);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOE);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOF);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOG);
 }
 
 
 
 void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode pin_mode)
 {
-
     /* Enable the GPIO Clock  */
     RCC_enableAHB1_clk(dev->clk);
 
     uint32_t mode, pull, type;
   
     /* Configure the pin */
-    uint32_t Speed = GPIO_speed_2MHz; // low noise by default
-    
+    uint32_t speed = GPIO_speed_2MHz; // low noise by default
 	
     switch(pin_mode) {
     case GPIO_OUTPUT_PP:
@@ -183,7 +160,7 @@ void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode pin_mod
     if ((mode == GPIO_Mode_OUT) || (mode == GPIO_Mode_AF)) {
         // Speed 
         dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << pin * 2);
-        dev->regs->OSPEEDR |= (uint32_t)Speed << pin * 2;
+        dev->regs->OSPEEDR |= (uint32_t)speed << pin * 2;
 
         // Output mode
         dev->regs->OTYPER  &= ~(GPIO_OTYPER_OT_0 << pin) ;

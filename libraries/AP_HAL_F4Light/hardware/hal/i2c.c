@@ -95,12 +95,14 @@ void i2c_lowLevel_deinit(const i2c_dev *dev){
  */
 static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
     memset(dev->state,0,sizeof(i2c_state));
+    
+    RCC_doAPB1_reset(dev->clk); // Enable the i2c and Reset it
 
     { /* Configure SCL */
         const stm32_pin_info *p = &PIN_MAP[dev->scl_pin];
 
         /* Enable the GPIOs for the SCL/SDA Pins */
-        RCC_AHB1PeriphClockCmd(p->gpio_device->clk, ENABLE);
+        RCC_enableAHB1_clk(p->gpio_device->clk);
 
         gpio_set_mode(   p->gpio_device, p->gpio_bit, GPIO_AF_OUTPUT_OD_PU);
         gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);
@@ -113,7 +115,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         const stm32_pin_info *p = &PIN_MAP[dev->sda_pin];
 
         /* Enable the GPIOs for the SCL/SDA Pins */
-        RCC_AHB1PeriphClockCmd(p->gpio_device->clk, ENABLE);
+        RCC_enableAHB1_clk(p->gpio_device->clk);
 
         gpio_set_mode(   p->gpio_device, p->gpio_bit, GPIO_AF_OUTPUT_OD_PU);
         gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);
@@ -139,34 +141,35 @@ void i2c_init(const i2c_dev *dev, uint16_t address, uint32_t speed)
   
     uint16_t  reg = dev->regs->CR2 & (uint16_t)~((uint16_t)I2C_CR2_FREQ); /* Clear frequency FREQ[5:0] bits */
 
+    RCC_Clocks_t  rcc_clocks;
     RCC_GetClocksFreq(&rcc_clocks);         // Get pclk1 frequency value
-    pclk1 = rcc_clocks.PCLK1_Frequency;
+    uint32_t  pclk1 = rcc_clocks.PCLK1_Frequency;
   
     uint16_t freq = (uint16_t)(pclk1 / 1000000);
-    dev->regs->CR2 = reg | freq; // Set frequency bits depending on pclk1 value 
+    dev->I2Cx->CR2 = reg | freq; // Set frequency bits depending on pclk1 value 
 
     // Disable the selected I2C peripheral to configure TRISE
     i2c_peripheral_disable(dev);    // Clears F/S, DUTY and CCR[11:0] bits */
     
     if (speed <= 100000) {    // Standard mode speed calculate
-        result = (uint16_t)(pclk1 / (speed << 1));
+        uint16_t result = (uint16_t)(pclk1 / (speed << 1));
     
         if (result < 0x04) { // Test if CCR value is under 0x4
             result = 0x04;    // Set minimum allowed value
         }
-        tmpreg = result;
+        reg = result;
     
         dev->regs->TRISE = freq + 1; // Set Maximum Rise Time for standard mode 
     }  else {     // Configure speed in fast mode
                 // To use the I2C at 400 KHz (in fast mode), the PCLK1 frequency (I2C peripheral input clock) must be a multiple of 10 MHz 
  
-        result = (uint16_t)(pclk1 / (speed * 3));
+        uint16_t result = (uint16_t)(pclk1 / (speed * 3));
     
         if ((result & I2C_CCR_CCR) == 0) { // Test if CCR value is under 0x1
             result |= 0x01;                // Set minimum allowed value 
         }
         
-        tmpreg = (uint16_t)(result | I2C_CCR_FS); // Set speed value and set F/S bit for fast mode 
+        reg = (uint16_t)(result | I2C_CCR_FS); // Set speed value and set F/S bit for fast mode 
         // Set Maximum Rise Time for fast mode 
         dev->regs->TRISE = (uint16_t)(freq * 300 / 1000 + 1);
     }

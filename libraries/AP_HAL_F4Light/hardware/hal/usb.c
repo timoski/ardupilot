@@ -12,6 +12,7 @@
 #include <string.h>
 #include <boards.h>
 #include "gpio_hal.h"
+#include "rcc.h"
 
 // bugfixes to ST USB stack - https://github.com/olegv142/stm32tivc_usb_cdc
 // register description - http://mcu.goodboard.ru/viewtopic.php?id=40
@@ -313,7 +314,7 @@ int usb_periphcfg(bool state)
     
     if (state) {
 
-	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOA , ENABLE); // USB on GPIO_A
+	RCC_enableAHB1_clk( RCC_AHB1Periph_GPIOA); // USB on GPIO_A
 
 	// Configure USB D-/D+ (DM/DP) pins.  sometimes touching of GPIO_Pin_12 causes interrupt which will not be served
         gpio_set_mode( DM_PIN_PORT, DM_PIN_PIN, GPIO_AF_OUTPUT_PP);
@@ -740,7 +741,6 @@ int usb_ioctl(int request, void *ctl)
 
 // following functions can't be inline!
 void USB_OTG_BSP_uDelay (const uint32_t usec) {   
-    //stopwatch_delay_us(usec); 
     hal_delay_microseconds(usec);
 }
 

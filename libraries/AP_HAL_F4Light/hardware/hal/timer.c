@@ -42,6 +42,7 @@ based on:
 #include <string.h>
 #include "nvic.h"
 #include "gpio_hal.h"
+#include "rcc.h"
 
 /* Just like the corresponding DIER bits:
  * [0] = Update handler;
@@ -304,9 +305,9 @@ static inline void enable_irq(const timer_dev *dev, uint8_t interrupt, uint8_t p
 void timer_init(const timer_dev *dev) {
 
     if(dev->bus)
-    	RCC_APB2PeriphClockCmd(dev->clk, ENABLE);
+    	RCC_enableAPB2_clk(dev->clk);
     else
-	RCC_APB1PeriphClockCmd(dev->clk, ENABLE);
+	RCC_enableAPB1_clk(dev->clk);
 
 }
 
@@ -319,15 +320,10 @@ void timer_reset(const timer_dev *dev) {
     memset(dev->state, 0, sizeof(*dev->state));
 
     if(dev->bus) {
-    	RCC_APB2PeriphClockCmd(dev->clk, ENABLE);
-    	RCC_APB2PeriphResetCmd(dev->clk, ENABLE);
-        RCC_APB2PeriphResetCmd(dev->clk, DISABLE);
+    	RCC_doAPB2_reset(dev->clk);
     } else {
-	RCC_APB1PeriphClockCmd(dev->clk, ENABLE);
-    	RCC_APB1PeriphResetCmd(dev->clk, ENABLE);
-        RCC_APB1PeriphResetCmd(dev->clk, DISABLE);
+	RCC_doAPB1_reset(dev->clk);
     }
-
 }
 
 /**
