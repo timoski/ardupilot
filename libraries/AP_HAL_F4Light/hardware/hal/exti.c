@@ -99,9 +99,9 @@ void exti_attach_interrupt(afio_exti_num num,
       EXTI->RTSR |= line;
       EXTI->FTSR |= line;
     } else {
-      uint32_t tmp = (uint32_t)EXTI_BASE + trg;
+      uint32_t addr = (uint32_t)EXTI_BASE + trg;
 
-      *(__IO uint32_t *) tmp |= line;
+      *(__IO uint32_t *) addr |= line;
     }
 
     /* Enable and set EXTI Line Interrupt priority */
@@ -147,8 +147,8 @@ void exti_attach_interrupt_pri(afio_exti_num num,
       EXTI->RTSR |= line;
       EXTI->FTSR |= line;
     } else {
-      uint32_t  tmp = (uint32_t)EXTI_BASE + trg;
-      *(__IO uint32_t *) tmp |= line;
+      uint32_t addr = (uint32_t)EXTI_BASE + trg;
+      *(__IO uint32_t *) addr |= line;
     }
 
     /* Enable and set EXTI Line Interrupt to the given priority */
@@ -170,7 +170,7 @@ void exti_detach_interrupt(afio_exti_num num)
 }
 
 
-void exti_enable_interrupt(afio_exti_num num, bool e){
+void exti_enable_irq(afio_exti_num num, bool e){
     if(e){
          EXTI->IMR |= exti_channels[num].irq_line;
     }else {

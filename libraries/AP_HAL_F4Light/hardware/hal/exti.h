@@ -65,7 +65,7 @@ typedef enum afio_exti_num {
 } afio_exti_num;
 
 /**
- * @brief External interrupt line port selector.
+ * External interrupt line port selector.
  *
  * Used to determine which GPIO port to map an external interrupt line
  * onto. */
@@ -131,7 +131,7 @@ void exti_attach_interrupt_pri(afio_exti_num num,
 void exti_detach_interrupt(afio_exti_num num);
 
 
-void exti_enable_interrupt(afio_exti_num num, bool e); // needed access to internal data
+void exti_enable_irq(afio_exti_num num, bool e); // needed access to internal data
 
 /**
  * Re-enable interrupts.
