@@ -192,7 +192,7 @@ void VCP_MarkRead(unsigned sz);
 /* Mark space as written */
 void VCP_MarkWritten(unsigned sz);
 
-int usb_periphcfg(FunctionalState state);
+int usb_periphcfg(bool state);
 
 
 void VCP_SetUSBTxBlocking(uint8_t Mode);

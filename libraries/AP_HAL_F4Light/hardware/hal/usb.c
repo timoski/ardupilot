@@ -300,11 +300,6 @@ void usb_default_attr(usb_attr_t *attr)
     attr->preempt_prio = 0;
     attr->sub_prio = 0;
     attr->use_present_pin = 0;
-//    attr->description = NULL;
-//    attr->manufacturer = NULL;
-//    attr->serial_number = NULL;
-//    attr->configuration = NULL;
-//    attr->interface = NULL;
 }
 
 /*--------------------------- usb_periphcfg -------------------------------*/
@@ -313,11 +308,11 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev){ // callback for hardware init
     return;
 }
 
-int usb_periphcfg(FunctionalState state)
+int usb_periphcfg(bool state)
 {
     USB_OTG_BSP_DisableInterrupt(); // disable IRQ
     
-    if (state == ENABLE) {
+    if (state) {
 
 	RCC_enableAHB1_clk( RCC_AHB1Periph_GPIOA); // USB on GPIO_A
 
@@ -333,15 +328,14 @@ int usb_periphcfg(FunctionalState state)
 
 	RCC_enableAPB2_clk(RCC_APB2Periph_SYSCFG);
 	RCC_enableAHB2_clk(RCC_AHB2Periph_OTG_FS);
+	RCC_enableAHB2_clk(USB_CLOCK);
     } else {
 	gpio_set_mode(DM_PIN_PORT, DM_PIN_PIN, GPIO_INPUT_FLOATING);
 	gpio_set_mode(DP_PIN_PORT, DP_PIN_PIN, GPIO_INPUT_FLOATING);
 	// we should not disable sysfg clock..
+	RCC_disableAHB2_clk(USB_CLOCK);
     }
  
-    if(state) RCC_enableAHB2_clk(USB_CLOCK);
-    else      RCC_disableAHB2_clk(USB_CLOCK);
-	
     return 1;
 }
 
