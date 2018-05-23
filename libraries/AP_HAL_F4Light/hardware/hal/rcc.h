@@ -201,9 +201,7 @@
 #define BDCR_ADDRESS              (PERIPH_BASE + BDCR_OFFSET)
 
 
-
 typedef struct {
-  uint32_t SYSCLK_Frequency; //  SYSCLK clock frequency expressed in Hz
   uint32_t HCLK_Frequency;   //  HCLK clock frequency expressed in Hz  
   uint32_t PCLK1_Frequency;  //  PCLK1 clock frequency expressed in Hz 
   uint32_t PCLK2_Frequency;  //  PCLK2 clock frequency expressed in Hz 
@@ -215,7 +213,6 @@ bool RCC_WaitForHSEStartUp(void);
 bool RCC_GetFlagStatus(uint8_t RCC_FLAG);
 void RCC_enableHSE(uint8_t hse);
 
-
 void RCC_GetClocksFreq(RCC_Clocks_t* RCC_Clocks);
 
 void RCC_doAPB1_reset(uint32_t dev_bit);
@@ -223,13 +220,14 @@ void RCC_doAPB2_reset(uint32_t dev_bit);
 void RCC_doAHB1_reset(uint32_t dev_bit);
 
 
-inline void RCC_enableRTCclk(bool enable){   *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)(enable?1:0); }
+static inline void RCC_enableRTCclk(bool enable){   *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)(enable?1:0); }
 
-inline void RCC_enableAHB1_clk(uint32_t dev_bit) {    RCC->AHB1ENR |= dev_bit; }
+static inline void RCC_enableAHB1_clk(uint32_t dev_bit) {    RCC->AHB1ENR |= dev_bit; }
+static inline void RCC_enableAHB2_clk(uint32_t dev_bit) {    RCC->AHB2ENR |= dev_bit; }
+static inline void RCC_disableAHB2_clk(uint32_t dev_bit){    RCC->AHB2ENR &= ~dev_bit;}
 
-inline void RCC_enableAHB2_clk(uint32_t dev_bit) {    RCC->AHB2ENR |= dev_bit; }
-
-inline void RCC_disableAHB2_clk(uint32_t dev_bit){    RCC->AHB2ENR &= ~dev_bit;}
+static inline void RCC_enableAPB1_clk(uint32_t dev_bit) {    RCC->APB1ENR |= dev_bit; }
+static inline void RCC_enableAPB2_clk(uint32_t dev_bit) {    RCC->APB2ENR |= dev_bit; }
 
 
 #ifdef __cplusplus

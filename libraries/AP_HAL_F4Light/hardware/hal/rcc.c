@@ -5,7 +5,7 @@
 void RCC_configRTC(uint32_t val)
 {
   if ((val & 0x00000300) == 0x00000300)  { // If HSE is selected as RTC clock source, configure HSE division factor for RTC clock 
-     uint32_t reg = RCC->CFGR & ~RCC_CFGR_RTCPRE;;    // Clear RTCPRE[4:0] bits 
+     uint32_t reg = RCC->CFGR & ~RCC_CFGR_RTCPRE;    // Clear RTCPRE[4:0] bits 
 
     // Configure HSE division factor for RTC clock 
     RCC->CFGR = reg | (val & 0xFFFFCFF);
@@ -17,13 +17,13 @@ void RCC_configRTC(uint32_t val)
 
 bool RCC_WaitForHSEStartUp(void)
 {
-  uint32_t startupcounter = 0;
+  uint32_t counter = 0;
   bool status;
-  // Wait till HSE is ready and if Time out is reached exit
-  do {
+ 
+  do {           // Wait till HSE is ready and if Time out is reached exit
     status = RCC_GetFlagStatus(RCC_FLAG_HSERDY);
-    startupcounter++;
-  } while(!status && (startupcounter != HSE_STARTUP_TIMEOUT));
+    counter++;
+  } while(!status && (counter != HSE_STARTUP_TIMEOUT));
 
   return status;
 }
@@ -60,10 +60,9 @@ static uint8_t prescalers[16] = {0, 0, 0, 0, 1, 2, 3, 4, 1, 2, 3, 4, 6, 7, 8, 9}
 
 void RCC_GetClocksFreq(RCC_Clocks_t* RCC_Clocks) // Compute HCLK, PCLK1 and PCLK2 clocks frequencies 
 {
-  RCC_Clocks->SYSCLK_Frequency = SystemCoreClock;
-  RCC_Clocks->HCLK_Frequency  = RCC_Clocks->SYSCLK_Frequency >> prescalers[(RCC->CFGR & RCC_CFGR_HPRE)  >> 4]; // HCLK clock frequency 
-  RCC_Clocks->PCLK1_Frequency = RCC_Clocks->HCLK_Frequency   >> prescalers[(RCC->CFGR & RCC_CFGR_PPRE1) >> 10]; // PCLK1 clock frequency
-  RCC_Clocks->PCLK2_Frequency = RCC_Clocks->HCLK_Frequency   >> prescalers[(RCC->CFGR & RCC_CFGR_PPRE2) >> 13]; // PCLK2 clock frequency
+  RCC_Clocks->HCLK_Frequency  = SystemCoreClock            >> prescalers[(RCC->CFGR & RCC_CFGR_HPRE)  >> 4]; // HCLK clock frequency 
+  RCC_Clocks->PCLK1_Frequency = RCC_Clocks->HCLK_Frequency >> prescalers[(RCC->CFGR & RCC_CFGR_PPRE1) >> 10]; // PCLK1 clock frequency
+  RCC_Clocks->PCLK2_Frequency = RCC_Clocks->HCLK_Frequency >> prescalers[(RCC->CFGR & RCC_CFGR_PPRE2) >> 13]; // PCLK2 clock frequency
 }
 
 
