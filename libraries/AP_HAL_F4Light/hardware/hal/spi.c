@@ -21,7 +21,7 @@ static spi_state spi2_state IN_CCM;
 static spi_state spi3_state IN_CCM;
 
 static const spi_dev spi1 = {
-    .SPIx     = SPI1,
+    .regs     = SPI1,
     .afio     = GPIO_AF_SPI1,
     .irq      = SPI1_IRQn,
     .clock    = RCC_APB2Periph_SPI1,
@@ -32,7 +32,7 @@ static const spi_dev spi1 = {
 const spi_dev * const _SPI1 = &spi1;
 
 static const spi_dev spi2 = {
-    .SPIx     = SPI2,
+    .regs     = SPI2,
     .afio     = GPIO_AF_SPI2,
     .irq      = SPI2_IRQn,
     .clock    = RCC_APB1Periph_SPI2,
@@ -43,7 +43,7 @@ static const spi_dev spi2 = {
 const spi_dev * const _SPI2 = &spi2;
 
 static const spi_dev spi3 = {
-    .SPIx     = SPI3,
+    .regs     = SPI3,
     .afio     = GPIO_AF_SPI3,
     .irq      = SPI3_IRQn,
     .clock    = RCC_APB1Periph_SPI3,
@@ -56,17 +56,17 @@ const spi_dev * const _SPI3 = &spi3;
 
 void spi_init(const spi_dev *dev) {
     
-  if (dev->SPIx == SPI1) {
+  if (dev->regs == SPI1) {
     RCC_doAPB2_reset(RCC_APB2Periph_SPI1);
-  }  else if (dev->SPIx == SPI2)  {
+  }  else if (dev->regs == SPI2)  {
     RCC_doAPB1_reset(RCC_APB1Periph_SPI2);
-  } else if (dev->SPIx == SPI3) {
+  } else if (dev->regs == SPI3) {
     RCC_doAPB1_reset(RCC_APB1Periph_SPI3);
-  } else if (dev->SPIx == SPI4) {
+  } else if (dev->regs == SPI4) {
     RCC_doAPB2_reset(RCC_APB2Periph_SPI4);
-  } else if (dev->SPIx == SPI5) {
+  } else if (dev->regs == SPI5) {
     RCC_doAPB2_reset(RCC_APB2Periph_SPI5);
-  } else if (dev->SPIx == SPI6) {
+  } else if (dev->regs == SPI6) {
     RCC_doAPB2_reset(RCC_APB2Periph_SPI6);
   }
 }
@@ -131,14 +131,6 @@ void spi_reconfigure(const spi_dev *dev, uint8_t ismaster, uint16_t baudPrescale
     spi_init(dev);
     spi_peripheral_disable(dev);
 
-    /* Enable the SPI clock */
-    if (dev->SPIx == SPI1)
-        RCC_enableAPB2_clk(dev->clock);
-    else if (dev->SPIx == SPI2)
-        RCC_enableAPB1_clk(RCC_APB1Periph_SPI2);
-    else
-        RCC_enableAPB1_clk(RCC_APB1Periph_SPI3);
-                	
     /* SPI configuration */
 	
     uint16_t SPI_CPOL;
@@ -174,41 +166,28 @@ void spi_reconfigure(const spi_dev *dev, uint8_t ismaster, uint16_t baudPrescale
     if (ismaster) SPI_Mode = SPI_Mode_Master;
     else          SPI_Mode = SPI_Mode_Slave;
 
-/*---------------------------- SPIx CR1 Configuration ------------------------*/
-    /* Get the SPIx CR1 value */
-    uint16_t tmpreg = dev->SPIx->CR1 &= SPI_CR1_CLEAR_MASK;  // Clear BIDIMode, BIDIOE, RxONLY, SSM, SSI, LSBFirst, BR, MSTR, CPOL and CPHA bits
+/*---------------------------- regs CR1 Configuration ------------------------*/
+    uint16_t tmpreg = dev->regs->CR1 &= SPI_CR1_CLEAR_MASK;  // Clear BIDIMode, BIDIOE, RxONLY, SSM, SSI, LSBFirst, BR, MSTR, CPOL and CPHA bits
 
-    /* Configure SPIx: direction, NSS management, first transmitted bit, BaudRate prescaler
-       master/salve mode, CPOL and CPHA */
-    /* Set BIDImode, BIDIOE and RxONLY bits according to SPI_Direction value */
-    /* Set SSM, SSI and MSTR bits according to SPI_Mode and SPI_NSS values */
-    /* Set LSBFirst bit according to SPI_FirstBit value */
-    /* Set BR bits according to SPI_BaudRatePrescaler value */
-    /* Set CPOL bit according to SPI_CPOL value */
-    /* Set CPHA bit according to SPI_CPHA value */
-    tmpreg |= (uint16_t)((uint32_t)SPI_Direction_2Lines_FullDuplex | SPI_Mode |
-                    SPI_DataSize_8b | SPI_CPOL |
-                    SPI_CPHA | SPI_NSS_Soft |
-                    baudPrescaler | SPI_FirstBit);
-    /* Write to SPIx CR1 */
-    dev->SPIx->CR1 = tmpreg;
+    // Configure regs: direction, NSS management, first transmitted bit, BaudRate prescaler
+    //   master/salve mode, CPOL and CPHA */
+    dev->regs->CR1 = tmpreg | (uint16_t)((uint32_t)SPI_Direction_2Lines_FullDuplex | SPI_Mode |
+                                            SPI_DataSize_8b | SPI_CPOL | SPI_CPHA | SPI_NSS_Soft |
+                                            baudPrescaler | SPI_FirstBit);
 
-    /* Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) */
-    dev->SPIx->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD);
+    
+    dev->regs->I2SCFGR &= (uint16_t)~((uint16_t)SPI_I2SCFGR_I2SMOD); // Activate the SPI mode (Reset I2SMOD bit in I2SCFGR register) 
+    dev->regs->CRCPR = 7; // SPI_CRCPolynomial;
 
-    /* Write to SPIx CRCPOLY */
-    dev->SPIx->CRCPR = 7; // SPI_CRCPolynomial;
-
-    /* Enable the selected SPI peripheral */
-    spi_peripheral_enable(dev);
+    spi_peripheral_enable(dev); // Enable the selected SPI peripheral 
         
     uint32_t dly=1000;
-    while ( (dev->SPIx->SR & SPI_BIT_TXE) == 0) {
+    while ( (dev->regs->SR & SPI_BIT_TXE) == 0) { // wait for TXE bit
         dly--;
         if(dly==0) break;
     }
         
-    (void) dev->SPIx->DR; 
+    (void) dev->regs->DR; 
 }
 
 
@@ -218,7 +197,7 @@ void spi_set_speed(const spi_dev *dev, uint16_t baudPrescaler) {
 
     spi_peripheral_disable(dev);
 
-    dev->SPIx->CR1 = (dev->SPIx->CR1 & BR_CLEAR_MASK) | baudPrescaler;
+    dev->regs->CR1 = (dev->regs->CR1 & BR_CLEAR_MASK) | baudPrescaler;
 
     spi_peripheral_enable(dev);
 }
@@ -237,33 +216,33 @@ int spimaster_transfer(const spi_dev *dev,
     // Transfer command data out
 
     while (txcount--){
-        while (!(dev->SPIx->SR & SPI_BIT_TXE)){ // just for case
+        while (!(dev->regs->SR & SPI_BIT_TXE)){ // just for case
             if(!spi_is_busy(dev) ) break;
         }	    
-        dev->SPIx->DR = *txbuf++;
+        dev->regs->DR = *txbuf++;
         uint16_t dly=1000; // ~20uS so byte already transferred
-        while (!(dev->SPIx->SR & SPI_BIT_RXNE)) {
+        while (!(dev->regs->SR & SPI_BIT_RXNE)) {
             if(--dly==0) break;
         }
-        (void) dev->SPIx->DR; // read out unneeded data
+        (void) dev->regs->DR; // read out unneeded data
     }
 
     if(txc_in && rxcount) delay_ns100(5); // small delay between TX and RX, to give the chip time to think over domestic affairs
 
     // Transfer response data in
     while (rxcount--){
-        while (!(dev->SPIx->SR & SPI_BIT_TXE));
-        dev->SPIx->DR = 0xFF;
+        while (!(dev->regs->SR & SPI_BIT_TXE));
+        dev->regs->DR = 0xFF;
         uint16_t dly=1000;
-        while (!(dev->SPIx->SR & SPI_BIT_RXNE)) {
+        while (!(dev->regs->SR & SPI_BIT_RXNE)) {
             if(--dly==0) break;
         }
-        *rxbuf++ = dev->SPIx->DR;
+        *rxbuf++ = dev->regs->DR;
     }
 
     // Wait until the transfer is complete - to not disable CS too early 
     uint32_t dly=3000;
-    while (dev->SPIx->SR & SPI_BIT_BSY){ // but datasheet prohibits this usage
+    while (dev->regs->SR & SPI_BIT_BSY){ // but datasheet prohibits this usage
         dly--;
         if(dly==0) break;
     }
@@ -274,7 +253,7 @@ int spimaster_transfer(const spi_dev *dev,
 
 static void isr_handler(const spi_dev *dev){
     NVIC_ClearPendingIRQ(dev->irq);
-    if(dev->state->handler) revo_call_handler(dev->state->handler, dev->SPIx->SR);
+    if(dev->state->handler) revo_call_handler(dev->state->handler, dev->regs->SR);
     else { // disable interrupts
         spi_disable_irq(dev, SPI_INTERRUPTS_ALL);
     }
