@@ -157,20 +157,20 @@ void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode pin_mod
     }
 
 
-    regs->MODER  &= ~(GPIO_MODER_MODER0 << pin * 2);
-    regs->MODER |= (uint32_t)mode << pin * 2;
+    dev->regs->MODER  &= ~(GPIO_MODER_MODER0 << pin * 2);
+    dev->regs->MODER |= (uint32_t)mode << pin * 2;
 
     if ((mode == GPIO_Mode_OUT) || (mode == GPIO_Mode_AF)) {
         // Speed 
-        regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << pin * 2);
-        regs->OSPEEDR |= (uint32_t)Speed << pin * 2;
+        dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << pin * 2);
+        dev->regs->OSPEEDR |= (uint32_t)Speed << pin * 2;
 
         // Output mode
-        regs->OTYPER  &= ~(GPIO_OTYPER_OT_0 << pin) ;
-        regs->OTYPER |= (uint16_t)((uint16_t)type << pin);
+        dev->regs->OTYPER  &= ~(GPIO_OTYPER_OT_0 << pin) ;
+        dev->regs->OTYPER |= (uint16_t)((uint16_t)type << pin);
     }
       
     // Pull-up/Pull down 
-    regs->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << pin * 2);
-    regs->PUPDR |= (uint32_t)pull << pin * 2;
+    dev->regs->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << pin * 2);
+    dev->regs->PUPDR |= (uint32_t)pull << pin * 2;
 }
