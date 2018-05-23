@@ -224,10 +224,10 @@ static inline void RCC_enableRTCclk(bool enable){   *(__IO uint32_t *) BDCR_RTCE
 
 static inline void RCC_enableAHB1_clk(uint32_t dev_bit) {    RCC->AHB1ENR |= dev_bit; }
 static inline void RCC_enableAHB2_clk(uint32_t dev_bit) {    RCC->AHB2ENR |= dev_bit; }
-static inline void RCC_disableAHB2_clk(uint32_t dev_bit){    RCC->AHB2ENR &= ~dev_bit;}
-
 static inline void RCC_enableAPB1_clk(uint32_t dev_bit) {    RCC->APB1ENR |= dev_bit; }
 static inline void RCC_enableAPB2_clk(uint32_t dev_bit) {    RCC->APB2ENR |= dev_bit; }
+
+static inline void RCC_disableAHB2_clk(uint32_t dev_bit){    RCC->AHB2ENR &= ~dev_bit;}
 
 
 #ifdef __cplusplus

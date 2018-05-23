@@ -178,12 +178,7 @@ static inline void usart_enable(const usart_dev *dev)
 {
     dev->state->is_used=true;
 
-    /* Check the parameters */
-    assert_param(IS_USART_ALL_PERIPH(dev->regs));
-
     /* Enable USART */
-//    USART_Cmd(dev->regs, ENABLE);
-    
     dev->regs->CR1 |= USART_CR1_UE; /* Enable the selected USART by setting the UE bit in the CR1 register */
 
 }

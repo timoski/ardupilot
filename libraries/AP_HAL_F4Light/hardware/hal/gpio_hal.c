@@ -98,8 +98,7 @@ void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode pin_mod
     uint32_t mode, pull, type;
   
     /* Configure the pin */
-    uint32_t Speed = GPIO_speed_2MHz; // low noise by default
-    
+    uint32_t speed = GPIO_speed_2MHz; // low noise by default
 	
     switch(pin_mode) {
     case GPIO_OUTPUT_PP:
@@ -163,7 +162,7 @@ void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode pin_mod
     if ((mode == GPIO_Mode_OUT) || (mode == GPIO_Mode_AF)) {
         // Speed 
         dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << pin * 2);
-        dev->regs->OSPEEDR |= (uint32_t)Speed << pin * 2;
+        dev->regs->OSPEEDR |= (uint32_t)speed << pin * 2;
 
         // Output mode
         dev->regs->OTYPER  &= ~(GPIO_OTYPER_OT_0 << pin) ;

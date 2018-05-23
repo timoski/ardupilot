@@ -12,122 +12,79 @@
  * use direct register access.
  */
  
-/*
-    we should define modes to be compatible with HAL_GPIO_ defines from HAL.h
-#define HAL_GPIO_INPUT  0
-#define HAL_GPIO_OUTPUT 1
-#define HAL_GPIO_ALT    2
-
-*/
-
-
-#define GPIO_Pin_0                 ((uint16_t)0x0001)  /* Pin 0 selected */
-#define GPIO_Pin_1                 ((uint16_t)0x0002)  /* Pin 1 selected */
-#define GPIO_Pin_2                 ((uint16_t)0x0004)  /* Pin 2 selected */
-#define GPIO_Pin_3                 ((uint16_t)0x0008)  /* Pin 3 selected */
-#define GPIO_Pin_4                 ((uint16_t)0x0010)  /* Pin 4 selected */
-#define GPIO_Pin_5                 ((uint16_t)0x0020)  /* Pin 5 selected */
-#define GPIO_Pin_6                 ((uint16_t)0x0040)  /* Pin 6 selected */
-#define GPIO_Pin_7                 ((uint16_t)0x0080)  /* Pin 7 selected */
-#define GPIO_Pin_8                 ((uint16_t)0x0100)  /* Pin 8 selected */
-#define GPIO_Pin_9                 ((uint16_t)0x0200)  /* Pin 9 selected */
-#define GPIO_Pin_10                ((uint16_t)0x0400)  /* Pin 10 selected */
-#define GPIO_Pin_11                ((uint16_t)0x0800)  /* Pin 11 selected */
-#define GPIO_Pin_12                ((uint16_t)0x1000)  /* Pin 12 selected */
-#define GPIO_Pin_13                ((uint16_t)0x2000)  /* Pin 13 selected */
-#define GPIO_Pin_14                ((uint16_t)0x4000)  /* Pin 14 selected */
-#define GPIO_Pin_15                ((uint16_t)0x8000)  /* Pin 15 selected */
-#define GPIO_Pin_All               ((uint16_t)0xFFFF)  /* All pins selected */
-
-#define GPIO_PinSource0            ((uint8_t)0x00)
-#define GPIO_PinSource1            ((uint8_t)0x01)
-#define GPIO_PinSource2            ((uint8_t)0x02)
-#define GPIO_PinSource3            ((uint8_t)0x03)
-#define GPIO_PinSource4            ((uint8_t)0x04)
-#define GPIO_PinSource5            ((uint8_t)0x05)
-#define GPIO_PinSource6            ((uint8_t)0x06)
-#define GPIO_PinSource7            ((uint8_t)0x07)
-#define GPIO_PinSource8            ((uint8_t)0x08)
-#define GPIO_PinSource9            ((uint8_t)0x09)
-#define GPIO_PinSource10           ((uint8_t)0x0A)
-#define GPIO_PinSource11           ((uint8_t)0x0B)
-#define GPIO_PinSource12           ((uint8_t)0x0C)
-#define GPIO_PinSource13           ((uint8_t)0x0D)
-#define GPIO_PinSource14           ((uint8_t)0x0E)
-#define GPIO_PinSource15           ((uint8_t)0x0F)
 
 // AF 0 (default) selection  
-#define GPIO_AF_RTC_50Hz      ((uint8_t)0x00)  // RTC_50Hz 
-#define GPIO_AF_MCO           ((uint8_t)0x00)  // MCO (MCO1 and MCO2) 
-#define GPIO_AF_TAMPER        ((uint8_t)0x00)  // TAMPER (TAMPER_1 and TAMPER_2) 
-#define GPIO_AF_SWJ           ((uint8_t)0x00)  // SWJ (SWD and JTAG) 
-#define GPIO_AF_TRACE         ((uint8_t)0x00)  // TRACE 
+#define GPIO_AF_RTC_50Hz      (0x00)  // RTC_50Hz 
+#define GPIO_AF_MCO           (0x00)  // MCO (MCO1 and MCO2) 
+#define GPIO_AF_TAMPER        (0x00)  // TAMPER (TAMPER_1 and TAMPER_2) 
+#define GPIO_AF_SWJ           (0x00)  // SWJ (SWD and JTAG) 
+#define GPIO_AF_TRACE         (0x00)  // TRACE 
 
 
-#define GPIO_AF_TIM1          ((uint8_t)0x01)  // TIM1 
-#define GPIO_AF_TIM2          ((uint8_t)0x01)  // TIM2 
+#define GPIO_AF_TIM1          (0x01)  // TIM1 
+#define GPIO_AF_TIM2          (0x01)  // TIM2 
 
 // AF 2 selection  
-#define GPIO_AF_TIM3          ((uint8_t)0x02)  // TIM3 
-#define GPIO_AF_TIM4          ((uint8_t)0x02)  // TIM4 
-#define GPIO_AF_TIM5          ((uint8_t)0x02)  // TIM5 
+#define GPIO_AF_TIM3          (0x02)  // TIM3 
+#define GPIO_AF_TIM4          (0x02)  // TIM4 
+#define GPIO_AF_TIM5          (0x02)  // TIM5 
 
 // AF 3 selection  
-#define GPIO_AF_TIM8          ((uint8_t)0x03)  // TIM8 
-#define GPIO_AF_TIM9          ((uint8_t)0x03)  // TIM9 
-#define GPIO_AF_TIM10         ((uint8_t)0x03)  // TIM10 
-#define GPIO_AF_TIM11         ((uint8_t)0x03)  // TIM11 
+#define GPIO_AF_TIM8          (0x03)  // TIM8 
+#define GPIO_AF_TIM9          (0x03)  // TIM9 
+#define GPIO_AF_TIM10         (0x03)  // TIM10 
+#define GPIO_AF_TIM11         (0x03)  // TIM11 
 
 // AF 4 selection  
-#define GPIO_AF_I2C1          ((uint8_t)0x04)  // I2C1 
-#define GPIO_AF_I2C2          ((uint8_t)0x04)  // I2C2 
-#define GPIO_AF_I2C3          ((uint8_t)0x04)  // I2C3 
+#define GPIO_AF_I2C1          (0x04)  // I2C1 
+#define GPIO_AF_I2C2          (0x04)  // I2C2 
+#define GPIO_AF_I2C3          (0x04)  // I2C3 
 
 // AF 5 selection  
-#define GPIO_AF_SPI1          ((uint8_t)0x05)  // SPI1      
-#define GPIO_AF_SPI2          ((uint8_t)0x05)  // SPI2/I2S2 
-#define GPIO_AF_SPI4          ((uint8_t)0x05)  // SPI4      
-#define GPIO_AF_SPI5          ((uint8_t)0x05)  // SPI5      
-#define GPIO_AF_SPI6          ((uint8_t)0x05)  // SPI6      
+#define GPIO_AF_SPI1          (0x05)  // SPI1      
+#define GPIO_AF_SPI2          (0x05)  // SPI2/I2S2 
+#define GPIO_AF_SPI4          (0x05)  // SPI4      
+#define GPIO_AF_SPI5          (0x05)  // SPI5      
+#define GPIO_AF_SPI6          (0x05)  // SPI6      
 
 // AF 6 selection  
-#define GPIO_AF_SPI3          ((uint8_t)0x06)  // SPI3/I2S3 
+#define GPIO_AF_SPI3          (0x06)  // SPI3/I2S3 
 
 // AF 7 selection  
-#define GPIO_AF_USART1        ((uint8_t)0x07)  // USART1  
-#define GPIO_AF_USART2        ((uint8_t)0x07)  // USART2  
-#define GPIO_AF_USART3        ((uint8_t)0x07)  // USART3  
-#define GPIO_AF_I2S3ext       ((uint8_t)0x07)  // I2S3ext 
+#define GPIO_AF_USART1        (0x07)  // USART1  
+#define GPIO_AF_USART2        (0x07)  // USART2  
+#define GPIO_AF_USART3        (0x07)  // USART3  
+#define GPIO_AF_I2S3ext       (0x07)  // I2S3ext 
 
 // AF 8 selection  
-#define GPIO_AF_UART4         ((uint8_t)0x08)  // UART4  
-#define GPIO_AF_UART5         ((uint8_t)0x08)  // UART5  
-#define GPIO_AF_USART6        ((uint8_t)0x08)  // USART6 
-#define GPIO_AF_UART7         ((uint8_t)0x08)  // UART7  
-#define GPIO_AF_UART8         ((uint8_t)0x08)  // UART8  
+#define GPIO_AF_UART4         (0x08)  // UART4  
+#define GPIO_AF_UART5         (0x08)  // UART5  
+#define GPIO_AF_USART6        (0x08)  // USART6 
+#define GPIO_AF_UART7         (0x08)  // UART7  
+#define GPIO_AF_UART8         (0x08)  // UART8  
 
 //   AF 9 selection 
-#define GPIO_AF_CAN1          ((uint8_t)0x09)  // CAN1  
-#define GPIO_AF_CAN2          ((uint8_t)0x09)  // CAN2  
-#define GPIO_AF_TIM12         ((uint8_t)0x09)  // TIM12 
-#define GPIO_AF_TIM13         ((uint8_t)0x09)  // TIM13 
-#define GPIO_AF_TIM14         ((uint8_t)0x09)  // TIM14 
+#define GPIO_AF_CAN1          (0x09)  // CAN1  
+#define GPIO_AF_CAN2          (0x09)  // CAN2  
+#define GPIO_AF_TIM12         (0x09)  // TIM12 
+#define GPIO_AF_TIM13         (0x09)  // TIM13 
+#define GPIO_AF_TIM14         (0x09)  // TIM14 
 
 // AF 10 selection  
-#define GPIO_AF_OTG_FS         ((uint8_t)0xA)  // OTG_FS 
-#define GPIO_AF_OTG_HS         ((uint8_t)0xA)  // OTG_HS 
+#define GPIO_AF_OTG_FS         (0xA)  // OTG_FS 
+#define GPIO_AF_OTG_HS         (0xA)  // OTG_HS 
 
 //  AF 11 selection  
-#define GPIO_AF_ETH             ((uint8_t)0x0B)  // ETHERNET 
+#define GPIO_AF_ETH             (0x0B)  // ETHERNET 
 
 // AF 12 selection  
-#define GPIO_AF_FSMC             ((uint8_t)0xC)  // FSMC                     
+#define GPIO_AF_FSMC             (0xC)  // FSMC                     
 
-#define GPIO_AF_OTG_HS_FS        ((uint8_t)0xC)  // OTG HS configured in FS, 
-#define GPIO_AF_SDIO             ((uint8_t)0xC)  // SDIO                     
+#define GPIO_AF_OTG_HS_FS        (0xC)  // OTG HS configured in FS, 
+#define GPIO_AF_SDIO             (0xC)  // SDIO                     
 
 //     AF 13 selection  
-#define GPIO_AF_DCMI          ((uint8_t)0x0D)  // DCMI
+#define GPIO_AF_DCMI          (0x0D)  // DCMI
 
 
 #define GPIO_AF_OTG1_FS         GPIO_AF_OTG_FS
@@ -247,11 +204,11 @@ static INLINE void gpio_write_bit(const gpio_dev* const dev, uint8_t pin, uint8_
 
 static INLINE uint8_t gpio_read_bit(const gpio_dev* const dev, uint8_t pin)
 {
-    if ((dev->regs->IDR & BIT(pin)) != Bit_RESET){
-	return  (uint8_t)Bit_SET;
+    if ((dev->regs->IDR & BIT(pin)) != 0){
+	return  1;
     } 
 
-    return (uint8_t)Bit_RESET;
+    return 0;
 
 	
 }
@@ -269,8 +226,8 @@ static inline afio_exti_port gpio_exti_port(const gpio_dev* const dev)
 
 static inline void gpio_set_speed(const gpio_dev* const dev, uint8_t pin, GPIOSpeed_t gpio_speed){
 /* Speed mode configuration */
-    dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (pin * 2));
-    dev->regs->OSPEEDR |=  ((uint32_t)(gpio_speed) << (pin * 2));
+    dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << pin * 2);
+    dev->regs->OSPEEDR |=     (uint32_t)gpio_speed << pin * 2;
 }
 
 

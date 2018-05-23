@@ -353,7 +353,6 @@ void timer_disable(const timer_dev *dev) {
 // returns real timers freq
 uint32_t configTimeBase(const timer_dev *dev, uint16_t period, uint16_t khz)
 {
-    TIM_TimeBaseInit_t  TIM_TimeBaseStructure;
     TIM_TypeDef *tim = dev->regs;
 
     timer_init(dev); // turn it on
@@ -464,10 +463,8 @@ static void output_compare_mode(const timer_dev *dev, timer_Channel channel) {
  * @param mode New timer mode for channel
  */
 void timer_set_mode(const timer_dev *dev, timer_Channel channel, timer_mode mode) {
-    assert_param(channel > 0 && channel <= 4);
 
     /* TODO decide about the basic timers */
-    assert_param(dev->type != TIMER_BASIC);
     if (!dev || dev->type == TIMER_BASIC)
         return;
 
