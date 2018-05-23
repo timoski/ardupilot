@@ -32,7 +32,7 @@ typedef struct usart_state {
 
 /** USART device type */
 typedef struct usart_dev {
-    USART_TypeDef* USARTx;             /**< Register map */
+    USART_TypeDef* regs;             /**< Register map */
     uint32_t clk;
     IRQn_Type irq;
     uint8_t rx_pin;
@@ -179,12 +179,12 @@ static inline void usart_enable(const usart_dev *dev)
     dev->state->is_used=true;
 
     /* Check the parameters */
-    assert_param(IS_USART_ALL_PERIPH(dev->USARTx));
+    assert_param(IS_USART_ALL_PERIPH(dev->regs));
 
     /* Enable USART */
-//    USART_Cmd(dev->USARTx, ENABLE);
+//    USART_Cmd(dev->regs, ENABLE);
     
-    dev->USARTx->CR1 |= USART_CR1_UE; /* Enable the selected USART by setting the UE bit in the CR1 register */
+    dev->regs->CR1 |= USART_CR1_UE; /* Enable the selected USART by setting the UE bit in the CR1 register */
 
 }
 
@@ -201,7 +201,7 @@ static inline uint8_t usart_is_used(const usart_dev *dev)
  */
 static inline void usart_disable(const usart_dev *dev){
     /* Disable the selected USART by clearing the UE bit in the CR1 register */
-    dev->USARTx->CR1 &= (uint16_t)~((uint16_t)USART_CR1_UE);
+    dev->regs->CR1 &= (uint16_t)~((uint16_t)USART_CR1_UE);
     
     /* Clean up buffer */
     dev->state->is_used=false;
