@@ -78,49 +78,23 @@ static const gpio_dev* _gpios[] =  { &gpioa, &gpiob, &gpioc, &gpiod, &gpioe, &gp
 
 void gpio_init_all(void)
 {
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOB, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOC, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOD, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOE, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOF, DISABLE);
-
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOG, ENABLE);
-    RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOG, DISABLE);
-
-    
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOF, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOA);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOB);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOC);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOD);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOE);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOF);
+    RCC_doAHB1_reset(RCC_AHB1Periph_GPIOG);
 }
 
 
 
 void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode mode)
 {
-    /* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-    assert_param(IS_GPIO_PIN_SOURCE(pin));
-
     GPIO_Init_t config;
 
     /* Enable the GPIO Clock  */
-    RCC_AHB1PeriphClockCmd(dev->clk, ENABLE);
+    RCC_enableAHB1_clk(dev->clk);
   
     /* Configure the pin */
     config.GPIO_Speed = GPIO_speed_2MHz; // low noise by default

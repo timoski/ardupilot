@@ -209,29 +209,28 @@ typedef struct {
   uint32_t PCLK2_Frequency;  //  PCLK2 clock frequency expressed in Hz 
 } RCC_Clocks_t;
 
-void RCC_RTCCLKConfig(uint32_t RCC_RTCCLKSource);
-ErrorStatus RCC_WaitForHSEStartUp(void);
+
+void RCC_configRTC(uint32_t RCC_RTCCLKSource);
+bool RCC_WaitForHSEStartUp(void);
 bool RCC_GetFlagStatus(uint8_t RCC_FLAG);
-void        RCC_HSEConfig(uint8_t RCC_HSE);
+void RCC_enableHSE(uint8_t hse);
 
 
 void RCC_GetClocksFreq(RCC_Clocks_t* RCC_Clocks);
 
-void RCC_RTCCLKCmd(FunctionalState NewState);
+void RCC_doAPB1_reset(uint32_t dev_bit);
+void RCC_doAPB2_reset(uint32_t dev_bit);
+void RCC_doAHB1_reset(uint32_t dev_bit);
 
-void RCC_AHB1PeriphClockCmd(uint32_t RCC_AHB1Periph, bool state);
-void RCC_AHB2PeriphClockCmd(uint32_t RCC_AHB2Periph, bool state);
-void RCC_AHB3PeriphClockCmd(uint32_t RCC_AHB3Periph, bool state);
-void RCC_APB1PeriphClockCmd(uint32_t RCC_APB1Periph, bool state);
-void RCC_APB2PeriphClockCmd(uint32_t RCC_APB2Periph, bool state);
-void RCC_AHB1PeriphResetCmd(uint32_t RCC_AHB1Periph, bool state);
-void RCC_AHB2PeriphResetCmd(uint32_t RCC_AHB2Periph, bool state);
-void RCC_AHB3PeriphResetCmd(uint32_t RCC_AHB3Periph, bool state);
-void RCC_APB1PeriphResetCmd(uint32_t RCC_APB1Periph, bool state);
-void RCC_APB2PeriphResetCmd(uint32_t RCC_APB2Periph, bool state);
 
-void RCC_RTCCLKConfig(uint32_t RCC_RTCCLKSource);
-void RCC_RTCCLKCmd(FunctionalState NewState);
+inline void RCC_enableRTCclk(bool enable){   *(__IO uint32_t *) BDCR_RTCEN_BB = (uint32_t)(enable?1:0); }
+
+inline void RCC_enableAHB1_clk(uint32_t dev_bit) {    RCC->AHB1ENR |= dev_bit; }
+
+inline void RCC_enableAHB2_clk(uint32_t dev_bit) {    RCC->AHB2ENR |= dev_bit; }
+
+inline void RCC_disableAHB2_clk(uint32_t dev_bit){    RCC->AHB2ENR &= ~dev_bit;}
+
 
 #ifdef __cplusplus
   }

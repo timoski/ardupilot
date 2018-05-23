@@ -73,7 +73,7 @@ void exti_attach_interrupt(afio_exti_num num,
     handlers[num] = handler;
 
     // Enable SYSCFG clock 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+    RCC_enableAPB2_clk(RCC_APB2Periph_SYSCFG);
 
     afio_exti_select(port, num);
 
@@ -115,7 +115,7 @@ void exti_attach_interrupt_pri(afio_exti_num num,
                            exti_trigger_mode mode,
                            uint8_t priority)
 {
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE); // we must wait some time before access to SYSCFG
+    RCC_enableAPB2_clk(RCC_APB2Periph_SYSCFG); // we must wait some time before access to SYSCFG
   	
     /* Register the handler */
     handlers[num] = handler;

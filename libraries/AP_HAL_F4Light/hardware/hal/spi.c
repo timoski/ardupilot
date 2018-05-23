@@ -57,23 +57,17 @@ const spi_dev * const _SPI3 = &spi3;
 void spi_init(const spi_dev *dev) {
     
   if (dev->SPIx == SPI1) {
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, ENABLE);
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, DISABLE);
+    RCC_doAPB2_reset(RCC_APB2Periph_SPI1);
   }  else if (dev->SPIx == SPI2)  {
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, ENABLE);
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, DISABLE);
+    RCC_doAPB1_reset(RCC_APB1Periph_SPI2);
   } else if (dev->SPIx == SPI3) {
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, ENABLE);
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, DISABLE);
+    RCC_doAPB1_reset(RCC_APB1Periph_SPI3);
   } else if (dev->SPIx == SPI4) {
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI4, ENABLE);
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI4, DISABLE);
+    RCC_doAPB2_reset(RCC_APB2Periph_SPI4);
   } else if (dev->SPIx == SPI5) {
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI5, ENABLE);
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI5, DISABLE);
+    RCC_doAPB2_reset(RCC_APB2Periph_SPI5);
   } else if (dev->SPIx == SPI6) {
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI6, ENABLE);
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI6, DISABLE);
+    RCC_doAPB2_reset(RCC_APB2Periph_SPI6);
   }
 }
 
@@ -139,11 +133,11 @@ void spi_reconfigure(const spi_dev *dev, uint8_t ismaster, uint16_t baudPrescale
 
     /* Enable the SPI clock */
     if (dev->SPIx == SPI1)
-        RCC_APB2PeriphClockCmd(dev->clock, ENABLE);
+        RCC_enableAPB2_clk(dev->clock);
     else if (dev->SPIx == SPI2)
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+        RCC_enableAPB1_clk(RCC_APB1Periph_SPI2);
     else
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
+        RCC_enableAPB1_clk(RCC_APB1Periph_SPI3);
                 	
     /* SPI configuration */
 	

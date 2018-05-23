@@ -319,7 +319,7 @@ int usb_periphcfg(FunctionalState state)
     
     if (state == ENABLE) {
 
-	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOA , ENABLE); // USB on GPIO_A
+	RCC_enableAHB1_clk( RCC_AHB1Periph_GPIOA); // USB on GPIO_A
 
 	/* Configure USB D-/D+ (DM/DP) pins */
 	GPIO_Init_t GPIO_InitStructure;
@@ -334,15 +334,16 @@ int usb_periphcfg(FunctionalState state)
 	gpio_set_af_mode(_GPIOA, GPIO_PinSource12, GPIO_AF_OTG1_FS);
 
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-	RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE) ;
+	RCC_enableAPB2_clk(RCC_APB2Periph_SYSCFG);
+	RCC_enableAHB2_clk(RCC_AHB2Periph_OTG_FS);
     } else {
 	gpio_set_mode(DM_PIN_PORT, DM_PIN_PIN, GPIO_INPUT_FLOATING);
 	gpio_set_mode(DP_PIN_PORT, DP_PIN_PIN, GPIO_INPUT_FLOATING);
 	// we should not disable sysfg clock..
     }
  
-    RCC_AHB2PeriphClockCmd(USB_CLOCK, state);
+    if(state) RCC_enableAHB2_clk(USB_CLOCK);
+    else      RCC_disableAHB2_clk(USB_CLOCK);
 	
     return 1;
 }

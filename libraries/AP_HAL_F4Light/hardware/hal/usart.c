@@ -204,9 +204,9 @@ void usart_init(const usart_dev *dev)  {
 
     // Turn on peripheral clocks
     if (dev->USARTx == USART1 || dev->USARTx == USART6 )
-	RCC_APB2PeriphClockCmd(dev->clk, ENABLE);       // we must wait some time before access to
+	RCC_enableAPB2_clk(dev->clk);       // we must wait some time before access to
     else
-	RCC_APB1PeriphClockCmd(dev->clk, ENABLE);
+	RCC_enableAPB1_clk(dev->clk);
 
 }
 

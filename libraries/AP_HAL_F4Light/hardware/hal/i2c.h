@@ -15,7 +15,7 @@
 #define I2C_BIT_MASK               ((uint32_t)0x00FFFFFF) 
 
 // SR1 bits
-#define I2C_BIT_SMBALERT           ((uint32_t)0x0008000)
+#define I2C_BIT_SMBALERT            ((uint32_t)0x0008000)
 #define I2C_BIT_TIMEOUT                ((uint32_t)0x4000)
 #define I2C_BIT_PECERR                 ((uint32_t)0x1000)
 #define I2C_BIT_OVR                    ((uint32_t)0x0800)
@@ -45,8 +45,8 @@
 #define I2C_BIT_MSL                    ((uint32_t)0x0001)
 
 
-#define I2C_NACKPosition_Next           ((uint16_t)0x0800)
-#define I2C_NACKPosition_Current        ((uint16_t)0xF7FF)
+#define I2C_NACKPosition_Next          ((uint16_t)0x0800)
+#define I2C_NACKPosition_Current       ((uint16_t)0xF7FF)
 
 #define I2C_Direction_Transmitter      ((uint8_t)0x00)
 #define I2C_Direction_Receiver         ((uint8_t)0x01)

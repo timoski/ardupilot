@@ -134,8 +134,8 @@ static INLINE void setupNVIC()
     (+) Enable the Power Controller (PWR) APB1 interface clock using the
        RCC_APB1PeriphClockCmd() function.
    (+) Enable access to RTC domain using the PWR_BackupAccessCmd() function.
-   (+) Select the RTC clock source using the RCC_RTCCLKConfig() function.
-   (+) Enable RTC Clock using the RCC_RTCCLKCmd() function.
+   (+) Select the RTC clock source using the RCC_configRTC() function.
+   (+) Enable RTC Clock using the RCC_enableRTCclk() function.
 */
 
 void board_set_rtc_register(uint32_t sig, uint16_t reg)
@@ -171,8 +171,8 @@ void inline init(void) {
     RCC->AHB1ENR |= RCC_AHB1ENR_BKPSRAMEN;
     *(__IO uint32_t *) CR_DBP_BB = (uint32_t)ENABLE;
 
-    RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);
-    RCC_RTCCLKCmd(ENABLE);
+    RCC_configRTC(RCC_RTCCLKSource_LSI);
+    RCC_enableRTCclk(ENABLE);
 
     // enable the backup registers.
     RCC->BDCR |= RCC_BDCR_RTCEN;
@@ -278,11 +278,11 @@ void NMI_Handler() {
 
 
     //Пытаемся запустить HSE
-    RCC_HSEConfig(RCC_HSE_ON);
+    RCC_enableHSE(RCC_HSE_ON);
     emerg_delay(1);     //Задержка на запуск кварца
 
 
-    if (RCC_WaitForHSEStartUp() == SUCCESS){
+    if (RCC_WaitForHSEStartUp()){
         //Если запустился - проводим установку заново
         SetSysClock(0); // without overclocking 
 

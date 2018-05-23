@@ -60,16 +60,7 @@ void adc_foreach(void (*fn)(const adc_dev*))
  */
 void adc_init(const adc_dev *dev) {
  
-    if (dev->adcx == ADC1)
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-    else if (dev->adcx == ADC2)
-        RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC2, ENABLE);
-    else
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE); 
-
-    
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC, ENABLE); // Enable all ADCs reset state 
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC, DISABLE);// Release all ADCs from reset state
+    RCC_doAPB2_reset(RCC_APB2Periph_ADC); // turn on clock and do reset to all ADCs
       
     /* Get the ADC CCR value */
     uint32_t tmp = ADC->CCR  & CR_CLEAR_MASK; // Clear MULTI, DELAY, DMA and ADCPRE bits

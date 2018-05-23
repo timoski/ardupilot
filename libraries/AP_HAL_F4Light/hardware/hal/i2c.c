@@ -90,21 +90,9 @@ void i2c_lowLevel_deinit(const i2c_dev *dev){
     /* I2C Peripheral Disable */
     dev->I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_PE);
 
-
-    /* I2C DeInit */
-
-    if (dev->I2Cx == I2C1)  {    
-        RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C1, ENABLE); // Enable I2C1 reset state 
-        RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C1, DISABLE); // Release I2C1 from reset state
-    } else if (dev->I2Cx == I2C2) {
-        RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2, ENABLE);
-        RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2, DISABLE);
-    } else if (dev->I2Cx == I2C3) {
-        RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C3, ENABLE);
-        RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C3, DISABLE);
-    }
+    RCC_doAPB1_reset(dev->clk);
     
-    /*!< GPIO configuration */
+    /* GPIO configuration */
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed = GPIO_speed_2MHz; // low speed to prevent glitches
@@ -134,17 +122,12 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
 
     GPIO_Init_t GPIO_InitStructure;
 
-    /* Enable the i2c */
-    RCC_APB1PeriphClockCmd(dev->clk, ENABLE);
-
-    /* Reset the Peripheral */
-    RCC_APB1PeriphResetCmd(dev->clk, ENABLE);
-    RCC_APB1PeriphResetCmd(dev->clk, DISABLE);
+    // Enable the i2c and Reset it
+    RCC_doAPB1_reset(dev->clk);
 
     memset(dev->state,0,sizeof(i2c_state));
 
 // common configuration
-    /* common GPIO configuration */
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_speed_25MHz; // GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
@@ -154,7 +137,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         const stm32_pin_info *p = &PIN_MAP[dev->scl_pin];
 
         /* Enable the GPIOs for the SCL/SDA Pins */
-        RCC_AHB1PeriphClockCmd(p->gpio_device->clk, ENABLE);
+        RCC_enableAHB1_clk(p->gpio_device->clk);
 
         GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
         gpio_init(p->gpio_device->GPIOx, &GPIO_InitStructure);
@@ -166,7 +149,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         const stm32_pin_info *p = &PIN_MAP[dev->sda_pin];
 
         /* Enable the GPIOs for the SCL/SDA Pins */
-        RCC_AHB1PeriphClockCmd(p->gpio_device->clk, ENABLE);
+        RCC_enableAHB1_clk(p->gpio_device->clk);
 
         GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
         gpio_init(p->gpio_device->GPIOx, &GPIO_InitStructure);
@@ -189,21 +172,16 @@ void i2c_init(const i2c_dev *dev, uint16_t address, uint32_t speed)
     /* I2C Peripheral Enable */
     dev->I2Cx->CR1 |= I2C_CR1_PE;
     
-    /* Apply I2C configuration after enabling it */
-//    I2C_Init(dev->I2Cx, &I2C_InitStructure);
-    uint16_t tmpreg;
-    uint16_t result;
-    uint32_t pclk1;
-    RCC_Clocks_t  rcc_clocks;
   
 //---------------------------- I2Cx CR2 Configuration ------------------------
-    tmpreg = dev->I2Cx->CR2 & (uint16_t)~((uint16_t)I2C_CR2_FREQ); /* Clear frequency FREQ[5:0] bits */
+    uint16_t  reg = dev->I2Cx->CR2 & (uint16_t)~((uint16_t)I2C_CR2_FREQ); /* Clear frequency FREQ[5:0] bits */
 
+    RCC_Clocks_t  rcc_clocks;
     RCC_GetClocksFreq(&rcc_clocks);         // Get pclk1 frequency value
-    pclk1 = rcc_clocks.PCLK1_Frequency;
+    uint32_t  pclk1 = rcc_clocks.PCLK1_Frequency;
   
-    uint32_t freqrange = (uint16_t)(pclk1 / 1000000);
-    dev->I2Cx->CR2 = tmpreg | freqrange; // Set frequency bits depending on pclk1 value 
+    uint32_t freq = (uint16_t)(pclk1 / 1000000);
+    dev->I2Cx->CR2 = reg | freq; // Set frequency bits depending on pclk1 value 
 
 
 //---------------------------- I2Cx CCR Configuration ------------------------
@@ -211,40 +189,41 @@ void i2c_init(const i2c_dev *dev, uint16_t address, uint32_t speed)
     dev->I2Cx->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_PE);    // Clear F/S, DUTY and CCR[11:0] bits */
     
     if (speed <= 100000) {    // Standard mode speed calculate
-        result = (uint16_t)(pclk1 / (speed << 1));
+        uint16_t result = (uint16_t)(pclk1 / (speed << 1));
     
         if (result < 0x04) { // Test if CCR value is under 0x4
             result = 0x04;    // Set minimum allowed value
         }
-        tmpreg = result;
+        reg = result;
     
-        dev->I2Cx->TRISE = freqrange + 1; // Set Maximum Rise Time for standard mode 
+        dev->I2Cx->TRISE = freq + 1; // Set Maximum Rise Time for standard mode 
     }  else {     // Configure speed in fast mode
                 // To use the I2C at 400 KHz (in fast mode), the PCLK1 frequency (I2C peripheral input clock) must be a multiple of 10 MHz 
  
-        result = (uint16_t)(pclk1 / (speed * 3));
+        uint16_t result = (uint16_t)(pclk1 / (speed * 3));
     
         if ((result & I2C_CCR_CCR) == 0) { // Test if CCR value is under 0x1
             result |= (uint16_t)0x0001;           // Set minimum allowed value 
         }
         
-        tmpreg = (uint16_t)(result | I2C_CCR_FS); // Set speed value and set F/S bit for fast mode 
+        reg = (uint16_t)(result | I2C_CCR_FS); // Set speed value and set F/S bit for fast mode 
         // Set Maximum Rise Time for fast mode 
-        dev->I2Cx->TRISE = (uint16_t)(((freqrange * (uint16_t)300) / (uint16_t)1000) + (uint16_t)1);
+        dev->I2Cx->TRISE = (uint16_t)(((freq * (uint16_t)300) / (uint16_t)1000) + (uint16_t)1);
     }
   
-    dev->I2Cx->CCR = tmpreg;
+    dev->I2Cx->CCR = reg;
+
     // Enable the selected I2C peripheral 
     dev->I2Cx->CR1 |= I2C_CR1_PE;
 
 /*---------------------------- I2Cx CR1 Configuration ------------------------*/
 
-    tmpreg = dev->I2Cx->CR1 & I2C_CR1_CLEAR_MASK;   // Clear ACK, SMBTYPE and  SMBUS bits 
+    reg = dev->I2Cx->CR1 & I2C_CR1_CLEAR_MASK;   // Clear ACK, SMBTYPE and  SMBUS bits 
     // Configure I2Cx: mode and acknowledgement 
     // Set SMBTYPE and SMBUS bits according to I2C_Mode value 
     // Set ACK bit according to I2C_Ack value 
-    tmpreg |= (uint16_t)((uint32_t)I2C_Mode_I2C | I2C_Ack_Enable);
-    dev->I2Cx->CR1 = tmpreg;
+    reg |= (uint16_t)((uint32_t)I2C_Mode_I2C | I2C_Ack_Enable);
+    dev->I2Cx->CR1 = reg;
   
 //---------------------------- I2Cx OAR1 Configuration -----------------------
     // Set I2Cx Own Address1 and acknowledged address 
