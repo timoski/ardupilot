@@ -99,7 +99,7 @@ extern uint32_t i2c_bit_time;
  * @brief I2C device type.
  */
 typedef struct i2c_dev {
-    I2C_TypeDef* I2Cx;          
+    I2C_TypeDef* regs;          
     uint8_t sda_pin;             
     uint8_t scl_pin;             
     uint32_t clk;          
@@ -147,10 +147,27 @@ static inline void i2c_send_address(const i2c_dev *dev, uint8_t address, uint8_t
 {
   /* Test on the direction to set/reset the read/write bit */
   if (direction != I2C_Direction_Transmitter) {    
-    dev->I2Cx->DR = address | I2C_OAR1_ADD0; /* Set the address bit0 for read */
+    dev->regs->DR = address | I2C_OAR1_ADD0; /* Set the address bit0 for read */
   } else {    
-    dev->I2Cx->DR = address & (uint8_t)~((uint8_t)I2C_OAR1_ADD0); /* Reset the address bit0 for write */
+    dev->regs->DR = address & (uint8_t)~((uint8_t)I2C_OAR1_ADD0); /* Reset the address bit0 for write */
   }
+}
+
+static inline void i2c_peripheral_disable(const i2c_dev *dev) {
+    dev->regs->CR1 &= (uint16_t)~((uint16_t)I2C_CR1_PE);
+}
+
+static inline void i2c_peripheral_enable(const i2c_dev *dev) {
+    dev->regs->CR1 |= (uint16_t)I2C_CR1_PE);
+}
+
+
+static inline void i2c_enable_irq(const i2c_dev *dev, uint16_t interrupt_flags) {
+    dev->regs->CR2 |= interrupt_flags;
+}
+
+static inline void i2c_disable_irq(const i2c_dev *dev, uint16_t interrupt_flags) {
+    dev->regs->CR2 &= ~interrupt_flags;
 }
 
 #ifdef I2C_DEBUG
