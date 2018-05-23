@@ -38,7 +38,7 @@ void EEPROMClass::reset_flash_errors(){
             FLASH->OPTKEYR = FLASH_OPT_KEY2;
         }
         
-        FLASH_OB_WRPConfig(OB_WRP_Sector_All, DISABLE); // remove protection
+        OB_WRPConfig(OB_WRP_Sector_All, DISABLE); // remove protection
         FLASH->SR |= FLASH_FLAG_WRPERR; // reset flag
     }
 }
@@ -82,7 +82,7 @@ FLASH_Status EEPROMClass::WaitForLastOperation(void) {
 
 
 // библиотечная версия содержит ошибку и не разблокирует память
-void EEPROMClass::FLASH_OB_WRPConfig(uint32_t OB_WRP, FunctionalState NewState)
+void EEPROMClass::OB_WRPConfig(uint32_t OB_WRP, FunctionalState NewState)
 { 
   
     WaitForLastOperation();
