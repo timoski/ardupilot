@@ -321,18 +321,15 @@ int usb_periphcfg(FunctionalState state)
 
 	RCC_enableAHB1_clk( RCC_AHB1Periph_GPIOA); // USB on GPIO_A
 
-	/* Configure USB D-/D+ (DM/DP) pins */
-	GPIO_Init_t GPIO_InitStructure;
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12; // sometimes touching of GPIO_Pin_12 causes interrupt which will not be served
-	GPIO_InitStructure.GPIO_Speed = GPIO_speed_100MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	gpio_init(GPIOA, &GPIO_InitStructure);
+	// Configure USB D-/D+ (DM/DP) pins.  sometimes touching of GPIO_Pin_12 causes interrupt which will not be served
+        gpio_set_mode( DM_PIN_PORT, DM_PIN_PIN, GPIO_AF_OUTPUT_PP);
+        gpio_set_speed(DM_PIN_PORT, DM_PIN_PIN, GPIO_speed_100MHz);
 
-	gpio_set_af_mode(_GPIOA, GPIO_PinSource11, GPIO_AF_OTG1_FS);
-	gpio_set_af_mode(_GPIOA, GPIO_PinSource12, GPIO_AF_OTG1_FS);
+        gpio_set_mode( DP_PIN_PORT, DP_PIN_PIN, GPIO_AF_OUTPUT_PP);
+        gpio_set_speed(DP_PIN_PORT, DP_PIN_PIN, GPIO_speed_100MHz); 
 
+	gpio_set_af_mode(DM_PIN_PORT, DM_PIN_PIN, GPIO_AF_OTG1_FS);
+	gpio_set_af_mode(DP_PIN_PORT, DP_PIN_PIN, GPIO_AF_OTG1_FS);
 
 	RCC_enableAPB2_clk(RCC_APB2Periph_SYSCFG);
 	RCC_enableAHB2_clk(RCC_AHB2Periph_OTG_FS);

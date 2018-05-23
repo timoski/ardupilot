@@ -85,33 +85,9 @@ uint32_t i2c_bit_time=4;
  * @retval None
  */
 void i2c_lowLevel_deinit(const i2c_dev *dev){
-    GPIO_Init_t GPIO_InitStructure;
-
-    /* I2C Peripheral Disable */
+    i2c_master_release_bus(dev);
     i2c_peripheral_disable(dev);
-
     RCC_doAPB1_reset(dev->clk);
-    
-    /* GPIO configuration */
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_InitStructure.GPIO_Speed = GPIO_speed_2MHz; // low speed to prevent glitches
-
-    {
-        const stm32_pin_info *p = &PIN_MAP[dev->scl_pin];
-
-        /*!< Configure I2C pins: SCL */
-        GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
-        gpio_init(p->gpio_device->regs, &GPIO_InitStructure);
-    }
-
-    {
-        const stm32_pin_info *p = &PIN_MAP[dev->sda_pin];
-
-        /*!< Configure I2C pins: SDA */
-        GPIO_InitStructure.GPIO_Pin = BIT(p->gpio_bit);
-        gpio_init(p->gpio_device->regs, &GPIO_InitStructure);
-    }
 }
 
 /**

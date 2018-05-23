@@ -184,20 +184,10 @@ typedef enum
 
 /** GPIO device type */
 typedef struct gpio_dev {
-    GPIO_TypeDef *GPIOx;      /**< Register map */
+    GPIO_TypeDef *regs;      /**< Register map */
     uint32_t clk; 	      /**< RCC clock information */
     afio_exti_port exti_port; /**< AFIO external interrupt port value */
 } gpio_dev;
-
-
-//  GPIO Init structure definition  
-typedef struct{
-  uint32_t GPIO_Pin;              // Specifies the GPIO pins to be configured.           This parameter can be any value of @ref GPIO_pins_define 
-  GPIOMode_t GPIO_Mode;     // Specifies the operating mode for the selected pins. This parameter can be a value of @ref GPIOMode_t 
-  GPIOSpeed_t GPIO_Speed;   // Specifies the speed for the selected pins.          This parameter can be a value of @ref GPIOSpeed_t 
-  GPIOOType_t GPIO_OType;   // Specifies the operating output type for the selected pins.  This parameter can be a value of @ref GPIOOType_t 
-  GPIOPuPd_t GPIO_PuPd;     // Specifies the operating Pull-up/Pull down for the selected pins.  This parameter can be a value of @ref GPIOPuPd_t */
-}GPIO_Init_t;
 
 
 #ifdef __cplusplus
@@ -229,8 +219,6 @@ extern void gpio_init_all(void);
  */
 extern void gpio_set_mode(const gpio_dev* const dev, uint8_t pin, gpio_pin_mode mode);
 
-extern void gpio_init(GPIO_TypeDef* GPIOx, GPIO_Init_t* conf);
-
 /**
  * Set the alternate function mode of a GPIO pin.
  *
@@ -241,39 +229,25 @@ extern void gpio_init(GPIO_TypeDef* GPIOx, GPIO_Init_t* conf);
  */
 static inline void gpio_set_af_mode(const gpio_dev* const dev, uint8_t pin, uint8_t mode)
 {
-        /* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-    assert_param(IS_GPIO_PIN_SOURCE(pin));
-    assert_param(IS_GPIO_AF(mode));
-        
-//    GPIO_PinAFConfig(dev->GPIOx, pin, mode);
-    uint32_t temp = dev->GPIOx->AFR[pin >> 0x03] & ~((uint32_t)0xF << ((uint32_t)((uint32_t)pin & (uint32_t)0x07) * 4));
-    dev->GPIOx->AFR[pin >> 0x03] = temp | ((uint32_t)(mode) << ((uint32_t)((uint32_t)pin & (uint32_t)0x07) * 4));
+    uint32_t temp = dev->regs->AFR[pin >> 0x03] & ~((uint32_t)0xF << ((uint32_t)((uint32_t)pin & (uint32_t)0x07) * 4));
+    dev->regs->AFR[pin >> 0x03] = temp | ((uint32_t)(mode) << ((uint32_t)((uint32_t)pin & (uint32_t)0x07) * 4));
 }
     
 
 static INLINE void gpio_write_bit(const gpio_dev* const dev, uint8_t pin, uint8_t val)
 {
-	/* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-    assert_param(IS_GPIO_PIN_SOURCE(pin));
-
     uint16_t bv = BIT(pin);
     
     if (val) {
-	dev->GPIOx->BSRRL = bv;
+	dev->regs->BSRRL = bv;
     } else {
-	dev->GPIOx->BSRRH = bv;
+	dev->regs->BSRRH = bv;
     }    
 }
 
 static INLINE uint8_t gpio_read_bit(const gpio_dev* const dev, uint8_t pin)
 {
-    /* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-    assert_param(IS_GPIO_PIN_SOURCE(pin));
- 
-    if ((dev->GPIOx->IDR & BIT(pin)) != Bit_RESET){
+    if ((dev->regs->IDR & BIT(pin)) != Bit_RESET){
 	return  (uint8_t)Bit_SET;
     } 
 
@@ -284,24 +258,19 @@ static INLINE uint8_t gpio_read_bit(const gpio_dev* const dev, uint8_t pin)
 
 static inline void gpio_toggle_bit(const gpio_dev* const dev, uint8_t pin)
 {
-	/* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
-    assert_param(IS_GPIO_PIN_SOURCE(pin));
-    dev->GPIOx->ODR ^= BIT(pin);	
+    dev->regs->ODR ^= BIT(pin);	
 }
 
 static inline afio_exti_port gpio_exti_port(const gpio_dev* const dev)
 {
-	/* Check the parameters */
-    assert_param(IS_GPIO_ALL_PERIPH(dev->GPIOx));
     return dev->exti_port;
 }
 
 
 static inline void gpio_set_speed(const gpio_dev* const dev, uint8_t pin, GPIOSpeed_t gpio_speed){
 /* Speed mode configuration */
-    dev->GPIOx->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (pin * 2));
-    dev->GPIOx->OSPEEDR |=  ((uint32_t)(gpio_speed) << (pin * 2));
+    dev->regs->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (pin * 2));
+    dev->regs->OSPEEDR |=  ((uint32_t)(gpio_speed) << (pin * 2));
 }
 
 
