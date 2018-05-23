@@ -38,27 +38,27 @@ void EEPROMClass::reset_flash_errors(){
             FLASH->OPTKEYR = FLASH_OPT_KEY2;
         }
         
-        OB_WRPConfig(OB_WRP_Sector_All, DISABLE); // remove protection
+        OB_WRPConfig(OB_WRP_Sector_All, false); // remove protection
         FLASH->SR |= FLASH_FLAG_WRPERR; // reset flag
     }
 }
 
 
 FLASH_Status EEPROMClass::GetStatus(void){
-  FLASH_Status flashstatus = FLASH_COMPLETE;
+  FLASH_Status status = FLASH_COMPLETE;
 
   if((FLASH->SR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY) {
-    flashstatus = FLASH_BUSY;
+    status = FLASH_BUSY;
   } else if((FLASH->SR & FLASH_FLAG_WRPERR) != 0) {
-      flashstatus = FLASH_ERROR_WRP;
+      status = FLASH_ERROR_WRP;
   } else if((FLASH->SR & (uint32_t)0xEF) != 0) {
-      flashstatus = FLASH_ERROR_PROGRAM;
+      status = FLASH_ERROR_PROGRAM;
   } else if((FLASH->SR & FLASH_FLAG_OPERR) != 0) {
-      flashstatus = FLASH_ERROR_OPERATION;
+      status = FLASH_ERROR_OPERATION;
   } else {
-      flashstatus = FLASH_COMPLETE;
+      status = FLASH_COMPLETE;
   }
-  return flashstatus;
+  return status;
 }
 
 /**
@@ -81,20 +81,16 @@ FLASH_Status EEPROMClass::WaitForLastOperation(void) {
 }
 
 
-// библиотечная версия содержит ошибку и не разблокирует память
-void EEPROMClass::OB_WRPConfig(uint32_t OB_WRP, FunctionalState NewState)
+void EEPROMClass::OB_WRPConfig(uint32_t OB_WRP, bool v)
 { 
   
     WaitForLastOperation();
 
-//  if(status == FLASH_COMPLETE) {  тут может быть любая ошибка - оттого мы и вызываем разблокировку!
-    if(NewState != DISABLE)
-    {
+    if(v) {
       *(__IO uint16_t*)OPTCR_BYTE2_ADDRESS &= (~OB_WRP);
     } else {
       *(__IO uint16_t*)OPTCR_BYTE2_ADDRESS |= (uint16_t)OB_WRP;
     }
-//  }
 }
 
 
@@ -109,11 +105,8 @@ FLASH_Status EEPROMClass::ProgramHalfWord(uint32_t Address, uint16_t Data)
 
     *(__IO uint16_t*)Address = Data;
 
-    // Wait for last operation to be completed 
-    status = WaitForLastOperation();
-
-    // after the program operation is completed, disable the PG Bit 
-    FLASH->CR &= (~FLASH_CR_PG);
+    status = WaitForLastOperation(); // Wait for last operation to be completed 
+    FLASH->CR &= (~FLASH_CR_PG); // after the program operation is completed, disable the PG Bit 
   }
   return status;
 }
@@ -130,9 +123,7 @@ FLASH_Status EEPROMClass::ProgramByte(uint32_t Address, uint8_t Data)
     *(__IO uint8_t*)Address = Data;
 
     status = WaitForLastOperation(); // Wait for last operation to be completed 
-
-    // after the program operation is completed, disable the PG Bit 
-    FLASH->CR &= (~FLASH_CR_PG);
+    FLASH->CR &= (~FLASH_CR_PG); // after the program operation is completed, disable the PG Bit 
   }
   
   return status;
