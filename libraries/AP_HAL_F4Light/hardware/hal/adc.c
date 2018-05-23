@@ -14,19 +14,19 @@ based on: LeafLabs
 #include <stdbool.h>
 
 const adc_dev _adc1 = {
-    .adcx   = ADC1,
+    .regs   = ADC1,
 };
 /** ADC1 device. */
 const adc_dev* const _ADC1 = &_adc1;
 
 const adc_dev _adc2 = {
-    .adcx   = ADC2,
+    .regs   = ADC2,
 };
 /** ADC2 device. */
 const adc_dev* const _ADC2 = &_adc2;
 
 const adc_dev const _adc3 = {
-    .adcx   = ADC3,
+    .regs   = ADC3,
 };
 /** ADC3 device. */
 const adc_dev* const _ADC3 = &_adc3;
@@ -79,16 +79,16 @@ void adc_init(const adc_dev *dev) {
     /* ADCx Init ****************************************************************/
     
    /* Get the ADCx CR1 value */
-    tmp = dev->adcx->CR1 & CR1_CLEAR_MASK;  // Clear RES and SCAN bits 
+    tmp = dev->regs->CR1 & CR1_CLEAR_MASK;  // Clear RES and SCAN bits 
 
   /* Configure ADCx: scan conversion mode and resolution */
   /* Set SCAN bit according to ADC_ScanConvMode value */
   /* Set RES bit according to ADC_Resolution value */
-  dev->adcx->CR1 = tmp | (uint32_t)(((uint32_t)DISABLE << 8) | ADC_Resolution_12b);
+  dev->regs->CR1 = tmp | (uint32_t)(((uint32_t)DISABLE << 8) | ADC_Resolution_12b);
 
   /*---------------------------- ADCx CR2 Configuration -----------------*/
   /* Get the ADCx CR2 value */
-  tmp = dev->adcx->CR2 & CR2_CLEAR_MASK; // Clear CONT, ALIGN, EXTEN and EXTSEL bits 
+  tmp = dev->regs->CR2 & CR2_CLEAR_MASK; // Clear CONT, ALIGN, EXTEN and EXTSEL bits 
 
 
   /* Configure ADCx: external trigger event and edge, data alignment and 
@@ -97,14 +97,14 @@ void adc_init(const adc_dev *dev) {
   /* Set EXTEN bits according to ADC_ExternalTrigConvEdge value */
   /* Set EXTSEL bits according to ADC_ExternalTrigConv value */
   /* Set CONT bit according to ADC_ContinuousConvMode value */
-  dev->adcx->CR2 = tmp | (uint32_t)(ADC_DataAlign_Right | \
+  dev->regs->CR2 = tmp | (uint32_t)(ADC_DataAlign_Right | \
                         ADC_ExternalTrigConv_T1_CC1 |
                         ADC_ExternalTrigConvEdge_None | \
                         ((uint32_t)DISABLE << 1));
 
   /*---------------------------- ADCx SQR1 Configuration -----------------*/
   /* Get the ADCx SQR1 value */
-  tmp = dev->adcx->SQR1;
+  tmp = dev->regs->SQR1;
 
   /* Clear L bits */
   tmp &= SQR1_L_RESET;
@@ -112,7 +112,7 @@ void adc_init(const adc_dev *dev) {
   /* Configure ADCx: regular channel sequence length */
   /* Set L bits according to ADC_NbrOfConversion value */
   uint32_t nc = (uint8_t)(1 /* number of conversions */ - (uint8_t)1);
-  dev->adcx->SQR1 =tmp | ((uint32_t)nc << 20);
+  dev->regs->SQR1 =tmp | ((uint32_t)nc << 20);
 }
 
 #if 0 // unused
@@ -135,13 +135,13 @@ uint16_t adc_read(const adc_dev *dev, uint8_t channel)
   adc_enable(dev);
       
   /* Start ADC Software Conversion */
-  ADC_SoftwareStartConv(dev->adcx);
+  ADC_SoftwareStartConv(dev->regs);
  
   /* Wait until ADC Channel end of conversion */  
-  while (ADC_GetFlagStatus(dev->adcx, ADC_FLAG_EOC) == RESET);
+  while (ADC_GetFlagStatus(dev->regs, ADC_FLAG_EOC) == RESET);
   
   /* Read ADC conversion result */
-  return ADC_GetConversionValue(dev->adcx);
+  return ADC_GetConversionValue(dev->regs);
 }
 
 uint16_t temp_read(void)

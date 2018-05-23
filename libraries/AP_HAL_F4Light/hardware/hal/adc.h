@@ -12,7 +12,7 @@
 
 /** ADC device type. */
 typedef struct adc_dev {
-   ADC_TypeDef *adcx;
+   ADC_TypeDef *regs;
 } adc_dev;
 
 #ifdef __cplusplus
@@ -165,7 +165,7 @@ static inline void adc_set_reg_seqlen(const adc_dev *dev, uint8_t length) {
 	uint8_t tmpreg2 = 0;
 
 	/* Get the ADCx SQR1 value */
-	tmpreg1 = dev->adcx->SQR1;
+	tmpreg1 = dev->regs->SQR1;
 	/* Clear L bits */
 	tmpreg1 &= SQR1_L_RESET;
 	/* Configure ADCx: regular channel sequence length */
@@ -173,29 +173,29 @@ static inline void adc_set_reg_seqlen(const adc_dev *dev, uint8_t length) {
 	tmpreg2 |= (uint8_t)(length - (uint8_t)1);
 	tmpreg1 |= ((uint32_t)tmpreg2 << 20);
 	/* Write to ADCx SQR1 */
-	dev->adcx->SQR1 = tmpreg1;
+	dev->regs->SQR1 = tmpreg1;
 }
 
 static inline void adc_channel_config(const adc_dev *dev, uint8_t channel, uint8_t rank, uint8_t sampleTime)
 {
   /* if ADC_Channel_10 ... ADC_Channel_18 is selected */
   if (channel > ADC_Channel_9)  {
-    uint32_t tmpreg1 = dev->adcx->SMPR1 & ~(SMPR_SMP_SET << (3 * (channel - 10)));
-    dev->adcx->SMPR1 = tmpreg1 |    (uint32_t)sampleTime << (3 * (channel - 10));
+    uint32_t tmpreg1 = dev->regs->SMPR1 & ~(SMPR_SMP_SET << (3 * (channel - 10)));
+    dev->regs->SMPR1 = tmpreg1 |    (uint32_t)sampleTime << (3 * (channel - 10));
   }  else  {/* channel include in ADC_Channel_[0..9] */
-    uint32_t tmpreg1 = dev->adcx->SMPR2 & ~(SMPR_SMP_SET << (3 * channel));
-    dev->adcx->SMPR2 = tmpreg1 |    (uint32_t)sampleTime << (3 * channel);
+    uint32_t tmpreg1 = dev->regs->SMPR2 & ~(SMPR_SMP_SET << (3 * channel));
+    dev->regs->SMPR2 = tmpreg1 |    (uint32_t)sampleTime << (3 * channel);
   }
 
   if (rank < 7) {
-    uint32_t tmpreg1 = dev->adcx->SQR3 & ~(SQR_SQ_SET << (5 * (rank - 1)));
-    dev->adcx->SQR3 = tmpreg1 |     (uint32_t)channel << (5 * (rank - 1));
+    uint32_t tmpreg1 = dev->regs->SQR3 & ~(SQR_SQ_SET << (5 * (rank - 1)));
+    dev->regs->SQR3 = tmpreg1 |     (uint32_t)channel << (5 * (rank - 1));
   } else if (rank < 13)  { /* For Rank 7 to 12 */
-    uint32_t tmpreg1 = dev->adcx->SQR2 & ~(SQR_SQ_SET << (5 * (rank - 7)));
-    dev->adcx->SQR2 = tmpreg1 |     (uint32_t)channel << (5 * (rank - 7));
+    uint32_t tmpreg1 = dev->regs->SQR2 & ~(SQR_SQ_SET << (5 * (rank - 7)));
+    dev->regs->SQR2 = tmpreg1 |     (uint32_t)channel << (5 * (rank - 7));
   }  else  { /* For Rank 13 to 16 */
-    uint32_t tmpreg1 = dev->adcx->SQR1 & ~(SQR_SQ_SET << (5 * (rank - 13)));
-    dev->adcx->SQR1 = tmpreg1 |     (uint32_t)channel << (5 * (rank - 13));
+    uint32_t tmpreg1 = dev->regs->SQR1 & ~(SQR_SQ_SET << (5 * (rank - 13)));
+    dev->regs->SQR1 = tmpreg1 |     (uint32_t)channel << (5 * (rank - 13));
   }
 }
   
@@ -206,7 +206,7 @@ static inline void adc_channel_config(const adc_dev *dev, uint8_t channel, uint8
 static inline void adc_enable(const adc_dev *dev) {
     /* Enable ADCx */
     /* Set the ADON bit to wake up the ADC from power down mode */
-    dev->adcx->CR2 |= (uint32_t)ADC_CR2_ADON;
+    dev->regs->CR2 |= (uint32_t)ADC_CR2_ADON;
 }
 
 /**
@@ -214,7 +214,7 @@ static inline void adc_enable(const adc_dev *dev) {
  * @param dev ADC device to disable
  */
 static inline void adc_disable(const adc_dev *dev) {
-    dev->adcx->CR2 &= (uint32_t)(~ADC_CR2_ADON);
+    dev->regs->CR2 &= (uint32_t)(~ADC_CR2_ADON);
 }
 
 /**
@@ -227,7 +227,7 @@ static inline void adc_disable_all(void) {
 static inline void adc_start_conv(const adc_dev *dev)
 {
   /* Enable the selected ADC conversion for regular group */
-  dev->adcx->CR2 |= (uint32_t)ADC_CR2_SWSTART;
+  dev->regs->CR2 |= (uint32_t)ADC_CR2_SWSTART;
 }
 
 static inline void adc_vref_enable(){
