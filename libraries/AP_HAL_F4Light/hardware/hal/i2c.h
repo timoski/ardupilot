@@ -158,7 +158,7 @@ static inline void i2c_peripheral_disable(const i2c_dev *dev) {
 }
 
 static inline void i2c_peripheral_enable(const i2c_dev *dev) {
-    dev->regs->CR1 |= (uint16_t)I2C_CR1_PE);
+    dev->regs->CR1 |= (uint16_t)I2C_CR1_PE;
 }
 
 

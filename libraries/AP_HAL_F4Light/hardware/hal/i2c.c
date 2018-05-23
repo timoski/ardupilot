@@ -106,7 +106,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         RCC_enableAHB1_clk(p->gpio_device->clk);
 
         gpio_set_mode(   p->gpio_device, p->gpio_bit, GPIO_AF_OUTPUT_OD_PU);
-        gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->afio);
+        gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);
         gpio_set_speed(  p->gpio_device, p->gpio_bit, GPIO_speed_25MHz);
 
         gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af); // Connect GPIO pins to peripheral, SCL must be first!
@@ -119,7 +119,7 @@ static inline void i2c_lowLevel_init(const i2c_dev *dev)  {
         RCC_enableAHB1_clk(p->gpio_device->clk);
 
         gpio_set_mode(   p->gpio_device, p->gpio_bit, GPIO_AF_OUTPUT_OD_PU);
-        gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->afio);
+        gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);
         gpio_set_speed(  p->gpio_device, p->gpio_bit, GPIO_speed_25MHz);
 
         gpio_set_af_mode(p->gpio_device, p->gpio_bit, dev->gpio_af);

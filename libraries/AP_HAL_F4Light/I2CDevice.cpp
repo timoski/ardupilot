@@ -344,7 +344,7 @@ again:
             _dev->regs->CR1 |= I2C_CR1_SWRST;           // set SoftReset for some time 
             hal_yield(0);
             _dev->regs->CR1 &= (uint16_t)(~I2C_CR1_SWRST); // clear SoftReset flag            
-            i2c_peripheral_enable(dev);
+            i2c_peripheral_enable(_dev);
         }
 
         if((_retries-retries) > 0 || ret==I2C_BUS_ERR){ // not reset bus or log error on 1st try, except ArbitrationLost error
